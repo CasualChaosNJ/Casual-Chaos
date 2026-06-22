@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Casual Chaos — Business Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --coral:#FF6B35; --gold:#FFB347; --pink:#FF8FAB;
+  --peach:#FFF0E6; --peach2:#FFE4CC;
+  --espresso:#3D1A08; --brown:#7A3B1E;
+  --cream:#FFFAF6; --white:#FFFFFF; --muted:#A0745A;
+  --success:#4CAF82; --danger:#E84040; --warn:#F5A623;
+  --card-shadow:0 2px 16px rgba(61,26,8,0.08);
+  --radius:16px; --radius-sm:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--espresso);min-height:100vh;}
+
+/* HEADER */
+.app-header{background:linear-gradient(135deg,var(--espresso),var(--brown));padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(61,26,8,0.25);}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--coral),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--white);letter-spacing:.01em;}
+.brand-name span{color:var(--gold);}
+.header-date{font-family:'DM Mono',monospace;font-size:.78rem;color:rgba(255,255,255,.55);}
+
+/* NAV */
+.nav-bar{background:var(--white);border-bottom:2px solid var(--peach2);display:flex;overflow-x:auto;padding:0 24px;gap:4px;scrollbar-width:none;}
+.nav-bar::-webkit-scrollbar{display:none;}
+.nav-btn{padding:14px 18px;border:none;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;color:var(--muted);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .2s,border-color .2s;}
+.nav-btn:hover{color:var(--coral);}
+.nav-btn.active{color:var(--coral);border-bottom-color:var(--coral);font-weight:600;}
+
+/* MAIN */
+.main{padding:28px 32px;max-width:1400px;margin:0 auto;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* CARDS */
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--card-shadow);padding:24px;}
+.card-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--espresso);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.mt16{margin-top:16px;} .mt24{margin-top:24px;}
+
+/* STAT CARDS */
+.stat-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--card-shadow);padding:20px 24px;border-left:4px solid var(--coral);display:flex;flex-direction:column;gap:6px;}
+.stat-card.gold{border-left-color:var(--gold);} .stat-card.pink{border-left-color:var(--pink);} .stat-card.green{border-left-color:var(--success);}
+.stat-label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.stat-value{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--espresso);}
+.stat-sub{font-size:.78rem;color:var(--muted);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.875rem;font-weight:600;transition:opacity .2s,transform .1s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:linear-gradient(135deg,var(--coral),var(--gold));color:var(--white);}
+.btn-secondary{background:var(--peach2);color:var(--espresso);}
+.btn-danger{background:var(--danger);color:var(--white);}
+.btn-success{background:var(--success);color:var(--white);}
+.btn-sm{padding:6px 12px;font-size:.8rem;border-radius:6px;}
+.btn:hover{opacity:.88;}
+
+/* FORMS */
+.form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px;}
+.form-group label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid var(--peach2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--espresso);background:var(--cream);outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--coral);}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.875rem;}
+thead th{text-align:left;padding:10px 14px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--peach);border-bottom:2px solid var(--peach2);}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--peach);color:var(--espresso);}
+tbody tr:hover{background:var(--peach);}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:.73rem;font-weight:700;letter-spacing:.04em;}
+.badge-coral{background:#FFE8DF;color:var(--coral);}
+.badge-gold{background:#FFF3DE;color:#C87C00;}
+.badge-green{background:#DFF5EC;color:#2D7A58;}
+.badge-danger{background:#FFE0E0;color:var(--danger);}
+.badge-pink{background:#FFE8EF;color:#C94F73;}
+.badge-muted{background:var(--peach2);color:var(--muted);}
+.badge-warn{background:#FFF8E1;color:#8A6300;}
+
+/* ALERT */
+.alert{padding:12px 16px;border-radius:10px;font-size:.85rem;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.alert-warn{background:#FFF8E1;color:#8A6300;border-left:3px solid var(--warn);}
+.alert-danger{background:#FFE8E8;color:#8A0000;border-left:3px solid var(--danger);}
+.alert-success{background:#E8F8F0;color:#1A6B40;border-left:3px solid var(--success);}
+
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-title{font-family:'Playfair Display',serif;font-size:1.2rem;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-day-name{text-align:center;font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;padding:6px 0;}
+.cal-cell{min-height:80px;border-radius:10px;padding:6px 8px;background:var(--peach);cursor:pointer;transition:box-shadow .15s;display:flex;flex-direction:column;gap:3px;border:2px solid transparent;}
+.cal-cell:hover{box-shadow:0 2px 10px rgba(255,107,53,.18);border-color:var(--coral);}
+.cal-cell.other-month{opacity:.35;}
+.cal-cell.today{border-color:var(--coral);background:#FFE8DF;}
+.cal-cell.order-day{background:#FFF3DE;border-color:var(--gold);}
+.cal-cell.blackout{background:#FFE8E8;border-color:var(--danger);opacity:.75;}
+.cal-cell.delivery{background:#DFF5EC;border-color:var(--success);}
+.cal-cell.order-day.delivery{background:linear-gradient(135deg,#FFF3DE,#DFF5EC);}
+.cal-num{font-size:.82rem;font-weight:700;color:var(--espresso);}
+.cal-badge{font-size:.62rem;font-weight:700;padding:1px 5px;border-radius:6px;width:fit-content;}
+.cal-badge-orders{background:var(--gold);color:var(--espresso);}
+.cal-badge-delivery{background:var(--success);color:var(--white);}
+.cal-badge-blackout{background:var(--danger);color:var(--white);}
+.cal-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);}
+.cal-legend-dot{width:12px;height:12px;border-radius:3px;}
+
+/* RECIPE CARDS */
+.recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px;}
+.recipe-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--card-shadow);overflow:hidden;transition:transform .2s,box-shadow .2s;}
+.recipe-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(61,26,8,.13);}
+.recipe-card-header{background:linear-gradient(135deg,var(--coral),var(--gold));padding:20px;color:var(--white);}
+.recipe-card-name{font-family:'Playfair Display',serif;font-size:1.15rem;}
+.recipe-card-cat{font-size:.75rem;opacity:.85;margin-top:2px;}
+.recipe-card-body{padding:16px;}
+.recipe-meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+.recipe-meta-item{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:4px;}
+
+/* INGREDIENT ROWS */
+.ing-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.ing-row input,.ing-row select{padding:7px 10px;border:1.5px solid var(--peach2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.85rem;background:var(--cream);color:var(--espresso);outline:none;}
+.ing-row input:focus,.ing-row select:focus{border-color:var(--coral);}
+.ing-qty{width:72px;}
+.ing-unit{width:90px;}
+.ing-del{background:var(--danger);color:var(--white);border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ORDER ITEM ROWS */
+.order-item-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:var(--peach);margin-bottom:8px;}
+.order-item-name{flex:1;font-weight:600;font-size:.9rem;}
+.order-item-price{font-size:.8rem;color:var(--muted);}
+.order-item-qty{width:60px;padding:6px 8px;border:1.5px solid var(--peach2);border-radius:6px;font-size:.9rem;text-align:center;background:var(--white);}
+.order-item-subtotal{font-weight:700;width:64px;text-align:right;font-size:.88rem;}
+
+/* KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start;}
+.kanban-col{background:var(--peach);border-radius:var(--radius);padding:16px;}
+.kanban-col-title{font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.kanban-card{background:var(--white);border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:var(--card-shadow);border-left:3px solid var(--coral);}
+.kanban-card.confirmed{border-left-color:var(--gold);}
+.kanban-card.ready{border-left-color:var(--pink);}
+.kanban-card.completed{border-left-color:var(--success);}
+.kanban-card-name{font-weight:700;font-size:.88rem;}
+.kanban-card-meta{font-size:.75rem;color:var(--muted);margin-top:3px;}
+.kanban-card-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+
+/* TICKET */
+.ticket{background:var(--white);border-radius:var(--radius);box-shadow:var(--card-shadow);padding:24px;max-width:380px;}
+.ticket-header{border-bottom:2px dashed var(--peach2);padding-bottom:12px;margin-bottom:12px;}
+.ticket-brand{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--coral);}
+.ticket-row{display:flex;justify-content:space-between;font-size:.875rem;padding:4px 0;}
+.ticket-divider{border:none;border-top:1px dashed var(--peach2);margin:10px 0;}
+.ticket-total{font-weight:800;font-size:1rem;}
+
+/* BATCH SUMMARY */
+.batch-ing{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:8px;background:var(--peach);margin-bottom:6px;}
+
+/* INV BAR */
+.inv-bar-wrap{margin-top:6px;}
+.inv-bar-bg{background:var(--peach2);border-radius:4px;height:7px;overflow:hidden;}
+.inv-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
+
+/* CHECKLIST */
+.check-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;margin-bottom:8px;background:var(--peach);transition:background .15s;}
+.check-item.done{background:#E8F8F0;}
+.check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--coral);cursor:pointer;}
+.check-item-text{flex:1;font-size:.9rem;}
+.check-item.done .check-item-text{text-decoration:line-through;color:var(--muted);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(61,26,8,.45);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius);padding:28px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(61,26,8,.25);}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:20px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+/* TOAST */
+#toast{position:fixed;bottom:28px;right:28px;background:var(--espresso);color:var(--white);padding:12px 20px;border-radius:10px;font-size:.875rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:transform .3s,opacity .3s;z-index:300;}
+#toast.show{transform:translateY(0);opacity:1;}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--espresso);}
+.section-sub{font-size:.82rem;color:var(--muted);margin-top:2px;}
+
+/* SUNSET BAR */
+.sunset-bar{height:4px;background:linear-gradient(90deg,var(--coral),var(--gold),var(--pink));border-radius:2px;margin-bottom:24px;}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:12px;}
+.empty-state p{font-size:.9rem;}
+
+/* DUE WARNING */
+.due-today{border-left-color:var(--danger)!important;}
+.due-soon{border-left-color:var(--warn)!important;}
+
+/* PRINT */
+@media print{
+  .app-header,.nav-bar,.btn,.modal-overlay,#toast{display:none!important;}
+  .main{padding:0;}
+  .ticket{box-shadow:none;border:1px solid #ccc;}
+}
+
+@media(max-width:768px){
+  .main{padding:16px;}
+  .grid-2,.grid-3,.grid-4,.kanban{grid-template-columns:1fr;}
+  .app-header{padding:0 16px;}
+  .nav-bar{padding:0 8px;}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-icon">🍹</div>
+    <span class="brand-name">Casual <span>Chaos</span></span>
+  </div>
+  <span class="header-date" id="headerDate"></span>
+</header>
+
+<nav class="nav-bar">
+  <button class="nav-btn active" onclick="switchTab('dashboard',this)">🏠 Dashboard</button>
+  <button class="nav-btn" onclick="switchTab('recipes',this)">🧃 Recipes</button>
+  <button class="nav-btn" onclick="switchTab('inventory',this)">📦 Inventory</button>
+  <button class="nav-btn" onclick="switchTab('orders',this)">🛒 Orders</button>
+  <button class="nav-btn" onclick="switchTab('queue',this)">📋 Queue Board</button>
+  <button class="nav-btn" onclick="switchTab('sales',this)">💰 Sales</button>
+  <button class="nav-btn" onclick="switchTab('schedule',this)">📅 Schedule</button>
+  <button class="nav-btn" onclick="switchTab('customers',this)">👥 Customers</button>
+  <button class="nav-btn" onclick="switchTab('checklist',this)">✅ Prep Checklist</button>
+  <button class="nav-btn" onclick="switchTab('reports',this)">📊 Reports</button>
+</nav>
+
+<main class="main">
+
+<!-- ══ DASHBOARD ══ -->
+<div id="tab-dashboard" class="tab-panel active">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">Good to see you ☀️</div><div class="section-sub">Here's what's happening with Casual Chaos today.</div></div>
+  </div>
+  <div id="dashAlerts"></div>
+  <div class="grid-4">
+    <div class="stat-card"><div class="stat-label">Today's Revenue</div><div class="stat-value" id="statRevToday">$0</div><div class="stat-sub">Orders logged today</div></div>
+    <div class="stat-card gold"><div class="stat-label">Open Orders</div><div class="stat-value" id="statOpenOrders">0</div><div class="stat-sub">Awaiting fulfillment</div></div>
+    <div class="stat-card pink"><div class="stat-label">Low Stock Items</div><div class="stat-value" id="statLowStock">0</div><div class="stat-sub">Below reorder threshold</div></div>
+    <div class="stat-card green"><div class="stat-label">Total Customers</div><div class="stat-value" id="statCustomers">0</div><div class="stat-sub">In your database</div></div>
+  </div>
+  <div class="grid-2 mt24">
+    <div class="card"><div class="card-title">📅 Upcoming Schedule</div><div id="dashSchedule"></div></div>
+    <div class="card"><div class="card-title">⚠️ Low Stock Alerts</div><div id="dashLowStock"></div></div>
+  </div>
+  <div class="grid-2 mt24">
+    <div class="card"><div class="card-title">🛒 Recent Orders</div><div id="dashRecentOrders"></div></div>
+    <div class="card"><div class="card-title">🧃 Top Drinks</div><div id="dashTopDrinks"></div></div>
+  </div>
+</div>
+
+<!-- ══ RECIPES ══ -->
+<div id="tab-recipes" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">🧃 Recipes</div><div class="section-sub">Your drink menu and cost breakdown</div></div>
+    <button class="btn btn-primary" onclick="openRecipeModal()">+ Add Recipe</button>
+  </div>
+  <div class="recipe-grid" id="recipeGrid"></div>
+</div>
+
+<!-- ══ INVENTORY ══ -->
+<div id="tab-inventory" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">📦 Inventory</div><div class="section-sub">Track ingredients and reorder levels</div></div>
+    <button class="btn btn-primary" onclick="openModal('inventoryModal')">+ Add Ingredient</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ingredient</th><th>Qty on Hand</th><th>Unit</th><th>Unit Cost</th><th>Reorder At</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="inventoryTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ORDERS ══ -->
+<div id="tab-orders" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">🛒 Orders</div><div class="section-sub">Log and manage customer orders</div></div>
+    <button class="btn btn-primary" onclick="openOrderModal()">+ New Order</button>
+  </div>
+  <div class="card mt16" style="padding:14px 20px">
+    <div class="form-row" style="margin-bottom:0">
+      <div class="form-group" style="max-width:180px">
+        <label>Filter Status</label>
+        <select id="orderFilter" onchange="renderOrders()">
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="ready">Ready</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card mt16">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Order #</th><th>Customer</th><th>Items</th><th>Order Date</th><th>Due Date</th><th>Type</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="ordersTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUEUE BOARD ══ -->
+<div id="tab-queue" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">📋 Order Queue</div><div class="section-sub">Drag-free Kanban — move orders through stages</div></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <label style="font-size:.82rem;color:var(--muted);font-weight:600">FILTER DATE:</label>
+      <input type="date" id="queueDateFilter" style="padding:6px 10px;border:1.5px solid var(--peach2);border-radius:8px;font-size:.85rem;background:var(--cream)" onchange="renderQueue()"/>
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('queueDateFilter').value='';renderQueue()">Clear</button>
+    </div>
+  </div>
+  <div id="dueTodayBanner"></div>
+  <div class="kanban" id="kanbanBoard"></div>
+</div>
+
+<!-- ══ SALES ══ -->
+<div id="tab-sales" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header"><div><div class="section-title">💰 Sales & Revenue</div><div class="section-sub">Performance by day and drink</div></div></div>
+  <div class="grid-3">
+    <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value" id="salesTotal">$0</div><div class="stat-sub">All time</div></div>
+    <div class="stat-card gold"><div class="stat-label">This Week</div><div class="stat-value" id="salesWeek">$0</div><div class="stat-sub">Mon – today</div></div>
+    <div class="stat-card pink"><div class="stat-label">Avg Order Value</div><div class="stat-value" id="salesAvg">$0</div><div class="stat-sub">Completed orders</div></div>
+  </div>
+  <div class="grid-2 mt24">
+    <div class="card"><div class="card-title">🏆 Top Selling Drinks</div><div id="salesTopDrinks"></div></div>
+    <div class="card"><div class="card-title">📈 Revenue by Day</div><div id="salesByDay"></div></div>
+  </div>
+</div>
+
+<!-- ══ SCHEDULE ══ -->
+<div id="tab-schedule" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">📅 Schedule</div><div class="section-sub">Order days, deliveries, and blackout dates</div></div>
+    <button class="btn btn-primary" onclick="openModal('calModal')">+ Add Event</button>
+  </div>
+  <div class="card">
+    <div class="cal-header">
+      <button class="btn btn-secondary btn-sm" onclick="calPrev()">‹ Prev</button>
+      <span class="cal-title" id="calMonthLabel"></span>
+      <button class="btn btn-secondary btn-sm" onclick="calNext()">Next ›</button>
+    </div>
+    <div class="cal-grid" id="calDayNames"></div>
+    <div class="cal-grid mt16" id="calGrid"></div>
+    <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FFE8DF;border:2px solid var(--coral)"></div>Today</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FFF3DE;border:2px solid var(--gold)"></div>Order Day</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#DFF5EC;border:2px solid var(--success)"></div>Delivery</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FFE8E8;border:2px solid var(--danger)"></div>Blackout</div>
+    </div>
+  </div>
+  <div class="card mt24">
+    <div class="card-title">📋 All Events</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Notes</th><th>Orders Scheduled</th><th>Actions</th></tr></thead>
+        <tbody id="eventsTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CUSTOMERS ══ -->
+<div id="tab-customers" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">👥 Customers</div><div class="section-sub">Your people and their preferences</div></div>
+    <button class="btn btn-primary" onclick="openModal('customerModal')">+ Add Customer</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Favorites</th><th>Orders</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody id="customersTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHECKLIST ══ -->
+<div id="tab-checklist" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">✅ Prep Checklist</div><div class="section-sub">Daily and event prep tasks</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" onclick="clearCompletedTasks()">Clear Done</button>
+      <button class="btn btn-primary" onclick="openModal('checkModal')">+ Add Task</button>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">☀️ Daily Prep</div><div id="checklistDaily"></div></div>
+    <div class="card"><div class="card-title">🎉 Event Prep</div><div id="checklistEvent"></div></div>
+  </div>
+</div>
+
+<!-- ══ REPORTS ══ -->
+<div id="tab-reports" class="tab-panel">
+  <div class="sunset-bar"></div>
+  <div class="section-header">
+    <div><div class="section-title">📊 Reports</div><div class="section-sub">Business insights at a glance</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📦 Batch Ingredient Pull List</div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <div class="form-group" style="max-width:200px;margin:0">
+        <label>Select Fulfillment Date</label>
+        <input type="date" id="batchDate" onchange="renderBatchSummary()"/>
+      </div>
+    </div>
+    <div id="batchSummary"><div class="empty-state"><div class="empty-icon">📦</div><p>Select a fulfillment date to see what you need to prep.</p></div></div>
+  </div>
+  <div class="grid-2 mt24">
+    <div class="card"><div class="card-title">📦 Inventory Burn Rate</div><div id="reportBurn"></div></div>
+    <div class="card"><div class="card-title">💰 Profit Margin by Drink</div><div id="reportMargin"></div></div>
+  </div>
+  <div class="card mt24"><div class="card-title">📅 Busiest Days</div><div id="reportBusiest"></div></div>
+</div>
+
+</main>
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Recipe Modal -->
+<div class="modal-overlay" id="recipeModal">
+  <div class="modal">
+    <div class="modal-title" id="recipeModalTitle">🧃 Add New Recipe</div>
+    <input type="hidden" id="r_id"/>
+    <div class="form-row">
+      <div class="form-group"><label>Drink Name</label><input type="text" id="r_name" placeholder="e.g. Bad Decisions"/></div>
+      <div class="form-group"><label>Category</label>
+        <select id="r_cat">
+          <option>Vodka</option><option>Tequila</option><option>Cognac</option><option>Rum</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Serving Size</label>
+        <select id="r_size">
+          <option value="8oz">8 oz</option><option value="16oz" selected>16 oz</option>
+          <option value="24oz">24 oz</option><option value="32oz">32 oz</option><option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group" id="r_custom_wrap" style="display:none"><label>Custom Size</label><input type="text" id="r_custom_size" placeholder="e.g. 20oz"/></div>
+      <div class="form-group"><label>Price ($)</label><input type="number" id="r_price" placeholder="0.00" step="0.01"/></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+      <label style="font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Ingredients <span style="color:var(--muted);font-weight:400;text-transform:none">(from inventory)</span></label>
+      <button class="btn btn-secondary btn-sm" onclick="quickAddToInventory()" type="button">+ Quick Add to Inventory</button>
+    </div>
+    <div id="ingNoInventory" style="display:none" class="alert alert-warn">⚠️ No inventory items yet. Add ingredients to inventory first, or use Quick Add above.</div>
+    <div id="ingRows"></div>
+    <button class="btn btn-secondary btn-sm mt16" onclick="addIngRow()" type="button">+ Add Ingredient Row</button>
+    <div class="form-group mt16"><label>Instructions</label>
+      <textarea id="r_instructions" rows="3" placeholder="Step by step prep instructions..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('recipeModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRecipe()">Save Recipe</button>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory Modal -->
+<div class="modal-overlay" id="inventoryModal">
+  <div class="modal">
+    <div class="modal-title">📦 Add Ingredient</div>
+    <div class="form-row">
+      <div class="form-group"><label>Ingredient Name</label><input type="text" id="inv_name" placeholder="e.g. Mango Puree"/></div>
+      <div class="form-group"><label>Unit</label>
+        <select id="inv_unit"><option>oz</option><option>lbs</option><option>gallons</option><option>liters</option><option>cups</option><option>each</option><option>bags</option><option>bottles</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Qty on Hand</label><input type="number" id="inv_qty" placeholder="0" step="0.1"/></div>
+      <div class="form-group"><label>Unit Cost ($)</label><input type="number" id="inv_cost" placeholder="0.00" step="0.01"/></div>
+      <div class="form-group"><label>Reorder At</label><input type="number" id="inv_reorder" placeholder="0" step="0.1"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('inventoryModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInventory()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Modal -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <div class="modal-title">🛒 New Order</div>
+    <div class="form-row">
+      <div class="form-group"><label>Customer Name</label><input type="text" id="o_customer" placeholder="Name or walk-in"/></div>
+      <div class="form-group"><label>Phone</label><input type="text" id="o_phone" placeholder="Optional"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Order Date</label><input type="date" id="o_date"/></div>
+      <div class="form-group"><label>Fulfillment Date</label><input type="date" id="o_fulfill"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Type</label>
+        <select id="o_type"><option value="pickup">Pickup</option><option value="delivery">Delivery</option><option value="event">Event</option></select>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="o_status"><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="ready">Ready</option><option value="completed">Completed</option></select>
+      </div>
+    </div>
+    <div style="font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Items</div>
+    <div id="orderItemRows"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:2px solid var(--peach2);">
+      <span style="font-weight:700;font-size:1rem;">Order Total</span>
+      <span style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--coral);" id="orderTotal">$0.00</span>
+    </div>
+    <div class="form-group mt16"><label>Notes</label><input type="text" id="o_notes" placeholder="Special requests, delivery address..."/></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('orderModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Event Modal -->
+<div class="modal-overlay" id="calModal">
+  <div class="modal">
+    <div class="modal-title">📅 Add Calendar Event</div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="cal_date"/></div>
+      <div class="form-group"><label>Event Type</label>
+        <select id="cal_type">
+          <option value="order_day">Order Day (Taking Orders)</option>
+          <option value="fulfillment">Fulfillment Day (Pickup)</option>
+          <option value="delivery">Delivery Day</option>
+          <option value="blackout">Blackout (Unavailable)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Notes</label><input type="text" id="cal_notes" placeholder="Optional details..."/></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('calModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCalEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Modal -->
+<div class="modal-overlay" id="customerModal">
+  <div class="modal">
+    <div class="modal-title">👥 Add Customer</div>
+    <div class="form-row">
+      <div class="form-group"><label>Name</label><input type="text" id="cust_name" placeholder="Full name"/></div>
+      <div class="form-group"><label>Phone</label><input type="text" id="cust_phone" placeholder="555-0000"/></div>
+    </div>
+    <div class="form-group"><label>Email</label><input type="email" id="cust_email" placeholder="optional@email.com"/></div>
+    <div class="form-group"><label>Favorite Drinks</label><input type="text" id="cust_favs" placeholder="e.g. Bad Decisions, Mango Sunrise"/></div>
+    <div class="form-group"><label>Notes</label><textarea id="cust_notes" rows="2" placeholder="Allergies, preferences, event contact..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('customerModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checklist Modal -->
+<div class="modal-overlay" id="checkModal">
+  <div class="modal">
+    <div class="modal-title">✅ Add Task</div>
+    <div class="form-group"><label>Task</label><input type="text" id="task_text" placeholder="e.g. Prep mango puree"/></div>
+    <div class="form-group"><label>Category</label>
+      <select id="task_cat"><option value="daily">Daily Prep</option><option value="event">Event Prep</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('checkModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ticket Modal -->
+<div class="modal-overlay" id="ticketModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">🎫 Order Ticket</div>
+    <div id="ticketContent"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('ticketModal')">Close</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPA_URL='https://ytwxpjftlhkorwbecevo.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0d3hwamZ0bGhrb3J3YmVjZXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDU1NTAsImV4cCI6MjA5NzcyMTU1MH0.24TATJUualJc9_gwkdkWO0f0GX7EGw2q-eSiOugbtNk';
+const H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'return=representation'};
+
+async function db(method,table,body=null,query=''){
+  const r=await fetch(`${SUPA_URL}/rest/v1/${table}${query}`,{method,headers:H,body:body?JSON.stringify(body):null});
+  if(!r.ok){const e=await r.json();throw new Error(e.message||'DB error');}
+  if(method==='DELETE'||r.status===204)return[];
+  return r.json();
+}
+const get=(t,q='')=>db('GET',t,null,'?select=*'+q+'&order=id.desc');
+const ins=(t,b)=>db('POST',t,b);
+const upd=(t,id,b)=>db('PATCH',t,b,`?id=eq.${id}`);
+const del=(t,id)=>db('DELETE',t,null,`?id=eq.${id}`);
+
+let recipes=[],inventory=[],orders=[],customers=[],calEvents=[],tasks=[];
+let calYear,calMonth;
+
+async function init(){
+  const now=new Date();
+  calYear=now.getFullYear();calMonth=now.getMonth();
+  document.getElementById('headerDate').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('o_date').value=now.toISOString().split('T')[0];
+  await loadAll();
+}
+
+async function loadAll(){
+  try{
+    [recipes,inventory,orders,customers,calEvents,tasks]=await Promise.all([
+      get('recipes').catch(()=>[]),
+      get('inventory').catch(()=>[]),
+      get('orders').catch(()=>[]),
+      get('customers').catch(()=>[]),
+      get('cal_events').catch(()=>[]),
+      get('checklist_items').catch(()=>[])
+    ]);
+    renderAll();
+  }catch(e){showToast('⚠️ DB connection issue. Check Supabase setup.');}
+}
+
+function renderAll(){
+  renderDashboard();renderRecipes();renderInventory();
+  renderOrders();renderQueue();renderSales();
+  renderCalendar();renderCustomers();renderChecklist();renderReports();
+}
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const today=new Date().toISOString().split('T')[0];
+  const todayOrders=orders.filter(o=>o.order_date===today);
+  const todayRev=todayOrders.reduce((s,o)=>s+(o.total||0),0);
+  const openOrders=orders.filter(o=>['pending','confirmed','ready'].includes(o.status));
+  const lowStock=inventory.filter(i=>i.quantity<=i.reorder_threshold);
+  document.getElementById('statRevToday').textContent='$'+todayRev.toFixed(2);
+  document.getElementById('statOpenOrders').textContent=openOrders.length;
+  document.getElementById('statLowStock').textContent=lowStock.length;
+  document.getElementById('statCustomers').textContent=customers.length;
+
+  // Alerts
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=tomorrow.toISOString().split('T')[0];
+  const dueTomorrow=orders.filter(o=>['pending','confirmed','ready'].includes(o.status)&&(o.fulfillment_date===tomorrowStr||o.order_date===tomorrowStr));
+  const aEl=document.getElementById('dashAlerts');aEl.innerHTML='';
+  if(lowStock.length>0)aEl.innerHTML+=`<div class="alert alert-warn">⚠️ ${lowStock.length} ingredient(s) low: ${lowStock.map(i=>i.ingredient_name).join(', ')}</div>`;
+  if(dueTomorrow.length>0)aEl.innerHTML+=`<div class="alert alert-danger">🔔 ${dueTomorrow.length} order(s) due tomorrow — check your queue!</div>`;
+
+  // Schedule
+  const upcoming=calEvents.filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  const sEl=document.getElementById('dashSchedule');
+  sEl.innerHTML=upcoming.length===0?'<div class="empty-state"><div class="empty-icon">📅</div><p>No upcoming events.</p></div>':
+    upcoming.map(e=>{
+      const typeMap={order_day:'🟡 Order Day',fulfillment:'🟠 Fulfillment',delivery:'🟢 Delivery',blackout:'🔴 Blackout'};
+      const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--peach)">
+        <span style="font-weight:700;font-family:'DM Mono',monospace;font-size:.8rem;color:var(--muted);min-width:48px">${d}</span>
+        <span>${typeMap[e.event_type]||e.event_type}</span>
+        ${e.notes?`<span style="font-size:.78rem;color:var(--muted)">${e.notes}</span>`:''}
+      </div>`;
+    }).join('');
+
+  // Low stock
+  const lEl=document.getElementById('dashLowStock');
+  lEl.innerHTML=lowStock.length===0?'<div class="empty-state"><div class="empty-icon">📦</div><p>All ingredients well stocked.</p></div>':
+    lowStock.map(i=>{
+      const pct=i.reorder_threshold>0?Math.min(100,(i.quantity/i.reorder_threshold)*100):50;
+      return `<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:.875rem;font-weight:600">${i.ingredient_name}</span>
+          <span class="badge badge-danger">${i.quantity} ${i.unit}</span>
+        </div>
+        <div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${pct}%;background:var(--danger)"></div></div>
+      </div>`;
+    }).join('');
+
+  // Recent orders
+  const roEl=document.getElementById('dashRecentOrders');
+  roEl.innerHTML=orders.length===0?'<div class="empty-state"><div class="empty-icon">🛒</div><p>No orders yet.</p></div>':
+    orders.slice(0,5).map(o=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--peach)">
+        <div><span style="font-weight:600;font-size:.875rem">#${o.id} — ${o.customer_name}</span>
+        <div style="font-size:.75rem;color:var(--muted)">${o.order_date||''}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:700">$${(o.total||0).toFixed(2)}</span>${statusBadge(o.status)}
+        </div>
+      </div>`).join('');
+
+  // Top drinks
+  const drinkCounts={};
+  orders.filter(o=>o.status==='completed').forEach(o=>{
+    try{(JSON.parse(o.items_json||'[]')).forEach(it=>{drinkCounts[it.name]=(drinkCounts[it.name]||0)+it.qty;});}catch(e){}
+  });
+  const sorted=Object.entries(drinkCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const tdEl=document.getElementById('dashTopDrinks');
+  tdEl.innerHTML=sorted.length===0?'<div class="empty-state"><div class="empty-icon">🧃</div><p>Complete orders to see top sellers.</p></div>':
+    sorted.map(([name,qty],i)=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--peach)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--coral)">${i+1}</span>
+          <span style="font-weight:600">${name}</span>
+        </div>
+        <span class="badge badge-gold">${qty} sold</span>
+      </div>`).join('');
+}
+
+function statusBadge(s){
+  const m={pending:'badge-muted',confirmed:'badge-gold',ready:'badge-coral',completed:'badge-green',cancelled:'badge-danger'};
+  return `<span class="badge ${m[s]||'badge-muted'}">${s}</span>`;
+}
+
+// ── RECIPES ──
+function renderRecipes(){
+  const grid=document.getElementById('recipeGrid');
+  if(recipes.length===0){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🧃</div><p>No recipes yet.</p></div>';return;}
+  grid.innerHTML=recipes.map(r=>{
+    const cost=calcRecipeCost(r);
+    const margin=r.price>0?((r.price-cost)/r.price*100).toFixed(0):'--';
+    const mColor=parseFloat(margin)>=60?'var(--success)':parseFloat(margin)>=30?'var(--warn)':'var(--danger)';
+    let ings=[];try{ings=JSON.parse(r.ingredients_json||'[]');}catch(e){}
+    return `<div class="recipe-card">
+      <div class="recipe-card-header">
+        <div class="recipe-card-name">${r.name}</div>
+        <div class="recipe-card-cat">${r.category} • ${r.serving_size||''}</div>
+      </div>
+      <div class="recipe-card-body">
+        <div class="recipe-meta">
+          <div class="recipe-meta-item">💲 $${(r.price||0).toFixed(2)}</div>
+          <div class="recipe-meta-item">🏭 $${cost.toFixed(2)} cost</div>
+          <div class="recipe-meta-item" style="color:${mColor}">📈 ${margin}% margin</div>
+        </div>
+        ${ings.length>0?`<div style="font-size:.78rem;color:var(--muted);margin-bottom:10px">${ings.map(i=>`${i.name} (${i.qty} ${i.unit})`).join(' · ')}</div>`:''}
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px">${(r.instructions||'').substring(0,90)}${r.instructions&&r.instructions.length>90?'...':''}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="editRecipe(${r.id})">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRecipe(${r.id})">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcRecipeCost(r){
+  try{
+    return (JSON.parse(r.ingredients_json||'[]')).reduce((sum,ing)=>{
+      const inv=inventory.find(i=>i.ingredient_name.toLowerCase()===ing.name.toLowerCase());
+      return sum+(inv&&inv.unit_cost?inv.unit_cost*ing.qty:0);
+    },0);
+  }catch(e){return 0;}
+}
+
+// Ingredient rows
+function addIngRow(name='',qty=''){
+  const wrap=document.getElementById('ingRows');
+  const noInvEl=document.getElementById('ingNoInventory');
+  if(inventory.length===0){noInvEl.style.display='';return;}
+  noInvEl.style.display='none';
+  // Find matching inventory item for pre-selection
+  const matchedInv=name?inventory.find(i=>i.ingredient_name.toLowerCase()===name.toLowerCase()):null;
+  const selectedId=matchedInv?matchedInv.id:(inventory[0]?inventory[0].id:'');
+  const div=document.createElement('div');div.className='ing-row';
+  div.innerHTML=`
+    <select class="ing-select" style="flex:2" onchange="syncIngUnit(this)">
+      ${inventory.map(i=>`<option value="${i.id}" data-unit="${i.unit}"${i.id==selectedId?' selected':''}>${i.ingredient_name}</option>`).join('')}
+    </select>
+    <input class="ing-qty" type="number" placeholder="Qty" step="0.1" min="0" value="${qty}" style="width:72px"/>
+    <span class="ing-unit-label" style="font-size:.82rem;color:var(--muted);min-width:36px">${matchedInv?matchedInv.unit:(inventory[0]?inventory[0].unit:'')}</span>
+    <button class="ing-del" onclick="this.parentElement.remove()" type="button">✕</button>`;
+  wrap.appendChild(div);
+}
+
+function syncIngUnit(selectEl){
+  const opt=selectEl.options[selectEl.selectedIndex];
+  const label=selectEl.parentElement.querySelector('.ing-unit-label');
+  if(label)label.textContent=opt.dataset.unit||'';
+}
+
+function quickAddToInventory(){
+  // Close recipe modal temporarily, open inventory modal, then reopen recipe
+  closeModal('recipeModal');
+  // Flag that we came from recipe modal
+  window._fromRecipeModal=true;
+  openModal('inventoryModal');
+}
+
+function openRecipeModal(r=null){
+  document.getElementById('r_id').value=r?r.id:'';
+  document.getElementById('recipeModalTitle').textContent=r?'✏️ Edit Recipe':'🧃 Add New Recipe';
+  document.getElementById('r_name').value=r?r.name:'';
+  document.getElementById('r_cat').value=r?r.category:'Vodka';
+  document.getElementById('r_price').value=r?r.price:'';
+  document.getElementById('r_instructions').value=r?r.instructions:'';
+  document.getElementById('ingRows').innerHTML='';
+  document.getElementById('ingNoInventory').style.display=inventory.length===0?'':'none';
+  if(r){
+    const sz=r.serving_size||'16oz';
+    const stdSizes=['8oz','16oz','24oz','32oz'];
+    if(stdSizes.includes(sz)){document.getElementById('r_size').value=sz;document.getElementById('r_custom_wrap').style.display='none';}
+    else{document.getElementById('r_size').value='custom';document.getElementById('r_custom_wrap').style.display='';document.getElementById('r_custom_size').value=sz;}
+    let ings=[];try{ings=JSON.parse(r.ingredients_json||'[]');}catch(e){}
+    ings.forEach(i=>addIngRow(i.name,i.qty));
+  } else {
+    document.getElementById('r_size').value='16oz';
+    document.getElementById('r_custom_wrap').style.display='none';
+    if(inventory.length>0)addIngRow();
+  }
+  openModal('recipeModal');
+}
+
+function editRecipe(id){
+  const r=recipes.find(r=>r.id===id);
+  if(r)openRecipeModal(r);
+}
+
+document.getElementById('r_size').addEventListener('change',function(){
+  document.getElementById('r_custom_wrap').style.display=this.value==='custom'?'':'none';
+});
+
+async function saveRecipe(){
+  const name=document.getElementById('r_name').value.trim();
+  if(!name){showToast('Enter a drink name');return;}
+  const sizeVal=document.getElementById('r_size').value;
+  const size=sizeVal==='custom'?document.getElementById('r_custom_size').value:sizeVal;
+  const rows=[...document.getElementById('ingRows').querySelectorAll('.ing-row')];
+  const ings=rows.map(row=>{
+    const sel=row.querySelector('.ing-select');
+    const invId=sel?parseInt(sel.value):null;
+    const invItem=inventory.find(i=>i.id===invId);
+    return{
+      name:invItem?invItem.ingredient_name:'',
+      qty:parseFloat(row.querySelector('.ing-qty').value)||0,
+      unit:invItem?invItem.unit:''
+    };
+  }).filter(i=>i.name);
+  const body={name,category:document.getElementById('r_cat').value,serving_size:size,
+    price:parseFloat(document.getElementById('r_price').value)||0,
+    ingredients_json:JSON.stringify(ings),instructions:document.getElementById('r_instructions').value};
+  const editId=document.getElementById('r_id').value;
+  try{
+    if(editId){
+      await upd('recipes',editId,body);
+      const idx=recipes.findIndex(r=>r.id==editId);
+      if(idx>-1)recipes[idx]={...recipes[idx],...body};
+    } else {
+      const res=await ins('recipes',body);
+      recipes.unshift(res[0]);
+    }
+    renderRecipes();renderDashboard();renderSales();renderReports();buildOrderItemRows();
+    closeModal('recipeModal');showToast('✅ Recipe saved!');
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+async function deleteRecipe(id){
+  if(!confirm('Delete this recipe?'))return;
+  await del('recipes',id);
+  recipes=recipes.filter(r=>r.id!==id);
+  renderRecipes();renderDashboard();buildOrderItemRows();showToast('Recipe deleted');
+}
+
+// ── INVENTORY ──
+function renderInventory(){
+  const tbody=document.getElementById('inventoryTable');
+  if(inventory.length===0){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><p>No ingredients yet.</p></div></td></tr>';return;}
+  tbody.innerHTML=inventory.map(i=>{
+    const low=i.quantity<=i.reorder_threshold;
+    const pct=i.reorder_threshold>0?Math.min(100,(i.quantity/i.reorder_threshold)*100):100;
+    const color=low?'var(--danger)':pct<150?'var(--warn)':'var(--success)';
+    return `<tr>
+      <td><strong>${i.ingredient_name}</strong></td>
+      <td><div>${i.quantity} ${i.unit}</div>
+        <div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${Math.min(100,pct)}%;background:${color}"></div></div></div>
+      </td>
+      <td>${i.unit}</td><td>$${(i.unit_cost||0).toFixed(2)}</td>
+      <td>${i.reorder_threshold} ${i.unit}</td>
+      <td>${low?'<span class="badge badge-danger">Low</span>':'<span class="badge badge-green">OK</span>'}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="adjustQty(${i.id})">Adjust</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteInventory(${i.id})">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveInventory(){
+  const name=document.getElementById('inv_name').value.trim();
+  if(!name){showToast('Enter ingredient name');return;}
+  const body={ingredient_name:name,unit:document.getElementById('inv_unit').value,
+    quantity:parseFloat(document.getElementById('inv_qty').value)||0,
+    unit_cost:parseFloat(document.getElementById('inv_cost').value)||0,
+    reorder_threshold:parseFloat(document.getElementById('inv_reorder').value)||0};
+  try{
+    const res=await ins('inventory',body);
+    inventory.unshift(res[0]);
+    renderInventory();renderDashboard();renderReports();renderRecipes();
+    closeModal('inventoryModal');
+    ['inv_name','inv_qty','inv_cost','inv_reorder'].forEach(id=>document.getElementById(id).value='');
+    showToast('✅ Ingredient saved!');
+    // If we came from recipe modal, reopen it and refresh dropdowns
+    if(window._fromRecipeModal){
+      window._fromRecipeModal=false;
+      // Refresh any existing ing-select dropdowns in ingRows
+      document.getElementById('ingNoInventory').style.display='none';
+      document.querySelectorAll('#ingRows .ing-select').forEach(sel=>{
+        const currentVal=sel.value;
+        sel.innerHTML=inventory.map(i=>`<option value="${i.id}" data-unit="${i.unit}"${i.id==currentVal?' selected':''}>${i.ingredient_name}</option>`).join('');
+      });
+      openModal('recipeModal');
+      showToast('✅ Ingredient added — now select it in your recipe');
+    }
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+async function adjustQty(id){
+  const item=inventory.find(i=>i.id===id);if(!item)return;
+  const val=prompt(`Adjust qty for ${item.ingredient_name}\nCurrent: ${item.quantity} ${item.unit}\n\nEnter new quantity:`);
+  if(val===null)return;
+  const qty=parseFloat(val);if(isNaN(qty)){showToast('Invalid quantity');return;}
+  await upd('inventory',id,{quantity:qty});
+  item.quantity=qty;
+  renderInventory();renderDashboard();renderReports();renderRecipes();showToast('✅ Quantity updated');
+}
+
+async function deleteInventory(id){
+  if(!confirm('Delete this ingredient?'))return;
+  await del('inventory',id);
+  inventory=inventory.filter(i=>i.id!==id);
+  renderInventory();renderDashboard();showToast('Ingredient deleted');
+}
+
+// ── ORDER MODAL ──
+function openOrderModal(){
+  buildOrderItemRows();
+  document.getElementById('o_customer').value='';
+  document.getElementById('o_phone').value='';
+  document.getElementById('o_fulfill').value='';
+  document.getElementById('o_notes').value='';
+  document.getElementById('o_type').value='pickup';
+  document.getElementById('o_status').value='pending';
+  document.getElementById('o_date').value=new Date().toISOString().split('T')[0];
+  updateOrderTotal();
+  openModal('orderModal');
+}
+
+function buildOrderItemRows(){
+  const wrap=document.getElementById('orderItemRows');
+  if(recipes.length===0){
+    wrap.innerHTML='<div class="alert alert-warn">⚠️ No recipes yet. Add recipes first to build orders.</div>';
+    return;
+  }
+  // Preserve existing qty values
+  const existing={};
+  wrap.querySelectorAll('.order-item-qty').forEach(el=>{
+    existing[el.dataset.recipeId]=el.value;
+  });
+  wrap.innerHTML=recipes.map(r=>`
+    <div class="order-item-row">
+      <div>
+        <div class="order-item-name">${r.name}</div>
+        <div class="order-item-price">${r.category} · ${r.serving_size||''} · $${(r.price||0).toFixed(2)} each</div>
+      </div>
+      <input type="number" class="order-item-qty" data-recipe-id="${r.id}" data-price="${r.price||0}" data-name="${r.name}"
+        placeholder="0" min="0" value="${existing[r.id]||''}" oninput="updateOrderTotal()"/>
+      <div class="order-item-subtotal" id="sub_${r.id}">$0.00</div>
+    </div>`).join('');
+  updateOrderTotal();
+}
+
+function updateOrderTotal(){
+  let total=0;
+  document.querySelectorAll('.order-item-qty').forEach(el=>{
+    const qty=parseInt(el.value)||0;
+    const price=parseFloat(el.dataset.price)||0;
+    const sub=qty*price;total+=sub;
+    const subEl=document.getElementById('sub_'+el.dataset.recipeId);
+    if(subEl)subEl.textContent='$'+sub.toFixed(2);
+  });
+  document.getElementById('orderTotal').textContent='$'+total.toFixed(2);
+}
+
+// ── ORDERS ──
+function renderOrders(){
+  const filter=document.getElementById('orderFilter').value;
+  const filtered=filter?orders.filter(o=>o.status===filter):orders;
+  const tbody=document.getElementById('ordersTable');
+  const today=new Date().toISOString().split('T')[0];
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=tomorrow.toISOString().split('T')[0];
+  if(filtered.length===0){tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🛒</div><p>No orders found.</p></div></td></tr>';return;}
+  tbody.innerHTML=filtered.map(o=>{
+    let items=[];try{items=JSON.parse(o.items_json||'[]');}catch(e){}
+    const itemStr=items.map(it=>`${it.name} ×${it.qty}`).join(', ');
+    const due=o.fulfillment_date||o.order_date;
+    const isToday=due===today;const isTomorrow=due===tomorrowStr;
+    const rowStyle=isToday?'background:#FFF3DE':isTomorrow?'background:#FFF8E1':'';
+    return `<tr style="${rowStyle}">
+      <td><strong>#${o.id}</strong>${isToday?'<span class="badge badge-coral" style="margin-left:6px">TODAY</span>':''}</td>
+      <td>${o.customer_name}</td>
+      <td style="max-width:160px;font-size:.8rem">${itemStr}</td>
+      <td>${o.order_date||''}</td>
+      <td>${o.fulfillment_date||'—'}</td>
+      <td><span class="badge badge-muted">${o.order_type}</span></td>
+      <td><strong>$${(o.total||0).toFixed(2)}</strong></td>
+      <td>${statusBadge(o.status)}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+        <select style="padding:4px 6px;border-radius:6px;border:1.5px solid var(--peach2);font-size:.75rem;background:var(--cream)" onchange="updateOrderStatus(${o.id},this.value)">
+          <option value="">Update</option>
+          <option value="pending">Pending</option><option value="confirmed">Confirmed</option>
+          <option value="ready">Ready</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="showTicket(${o.id})">🎫</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteOrder(${o.id})">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveOrder(){
+  const customer=document.getElementById('o_customer').value.trim();
+  if(!customer){showToast('Enter customer name');return;}
+  const itemsArr=[];
+  document.querySelectorAll('.order-item-qty').forEach(el=>{
+    const qty=parseInt(el.value)||0;
+    if(qty>0)itemsArr.push({name:el.dataset.name,qty,price:parseFloat(el.dataset.price)||0});
+  });
+  if(itemsArr.length===0){showToast('Add at least one item');return;}
+  const total=itemsArr.reduce((s,it)=>s+(it.price*it.qty),0);
+  const body={customer_name:customer,phone:document.getElementById('o_phone').value,
+    order_date:document.getElementById('o_date').value,
+    fulfillment_date:document.getElementById('o_fulfill').value,
+    order_type:document.getElementById('o_type').value,status:document.getElementById('o_status').value,
+    items_json:JSON.stringify(itemsArr),total,notes:document.getElementById('o_notes').value};
+  try{
+    const res=await ins('orders',body);
+    orders.unshift(res[0]);
+    renderOrders();renderDashboard();renderSales();renderQueue();renderReports();
+    closeModal('orderModal');showToast('✅ Order saved!');
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+async function updateOrderStatus(id,status){
+  if(!status)return;
+  await upd('orders',id,{status});
+  const o=orders.find(o=>o.id===id);if(o)o.status=status;
+  renderOrders();renderDashboard();renderSales();renderQueue();showToast(`Order #${id} → ${status}`);
+}
+
+async function deleteOrder(id){
+  if(!confirm('Delete this order?'))return;
+  await del('orders',id);
+  orders=orders.filter(o=>o.id!==id);
+  renderOrders();renderDashboard();renderSales();renderQueue();showToast('Order deleted');
+}
+
+// ── TICKET ──
+function showTicket(id){
+  const o=orders.find(o=>o.id===id);if(!o)return;
+  let items=[];try{items=JSON.parse(o.items_json||'[]');}catch(e){}
+  const now=new Date().toLocaleString('en-US');
+  document.getElementById('ticketContent').innerHTML=`
+    <div class="ticket">
+      <div class="ticket-header">
+        <div class="ticket-brand">🍹 Casual Chaos</div>
+        <div style="font-size:.75rem;color:var(--muted)">${now}</div>
+      </div>
+      <div class="ticket-row"><span style="color:var(--muted)">Order #</span><strong>#${o.id}</strong></div>
+      <div class="ticket-row"><span style="color:var(--muted)">Customer</span><strong>${o.customer_name}</strong></div>
+      ${o.phone?`<div class="ticket-row"><span style="color:var(--muted)">Phone</span>${o.phone}</div>`:''}
+      <div class="ticket-row"><span style="color:var(--muted)">Type</span><span class="badge badge-coral">${o.order_type}</span></div>
+      <div class="ticket-row"><span style="color:var(--muted)">Due</span><strong>${o.fulfillment_date||o.order_date||'—'}</strong></div>
+      <hr class="ticket-divider"/>
+      ${items.map(it=>`<div class="ticket-row"><span>${it.name} <span style="color:var(--muted)">×${it.qty}</span></span><span>$${(it.price*it.qty).toFixed(2)}</span></div>`).join('')}
+      <hr class="ticket-divider"/>
+      <div class="ticket-row ticket-total"><span>Total</span><span style="color:var(--coral)">$${(o.total||0).toFixed(2)}</span></div>
+      ${o.notes?`<div style="margin-top:12px;padding:8px;background:var(--peach);border-radius:8px;font-size:.82rem"><strong>Notes:</strong> ${o.notes}</div>`:''}
+      <div style="text-align:center;margin-top:16px;font-size:.75rem;color:var(--muted)">Thank you! 🍹</div>
+    </div>`;
+  openModal('ticketModal');
+}
+
+// ── QUEUE BOARD ──
+function renderQueue(){
+  const dateFilter=document.getElementById('queueDateFilter').value;
+  const today=new Date().toISOString().split('T')[0];
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=tomorrow.toISOString().split('T')[0];
+
+  // Due today banner
+  const dueTodayOrders=orders.filter(o=>['pending','confirmed','ready'].includes(o.status)&&
+    (o.fulfillment_date===today||(!o.fulfillment_date&&o.order_date===today)));
+  const bannerEl=document.getElementById('dueTodayBanner');
+  bannerEl.innerHTML=dueTodayOrders.length>0?
+    `<div class="alert alert-danger" style="margin-bottom:16px">🔥 ${dueTodayOrders.length} order(s) due TODAY: ${dueTodayOrders.map(o=>`#${o.id} ${o.customer_name}`).join(' · ')}</div>`:'';
+
+  const statuses=['pending','confirmed','ready','completed'];
+  const labels={pending:'⏳ Pending',confirmed:'✅ Confirmed',ready:'🎯 Ready',completed:'🏁 Completed'};
+  const colColors={pending:'var(--muted)',confirmed:'var(--gold)',ready:'var(--coral)',completed:'var(--success)'};
+
+  let filtered=orders;
+  if(dateFilter)filtered=orders.filter(o=>(o.fulfillment_date||o.order_date)===dateFilter);
+
+  document.getElementById('kanbanBoard').innerHTML=statuses.map(status=>{
+    const col=filtered.filter(o=>o.status===status);
+    return `<div class="kanban-col">
+      <div class="kanban-col-title" style="color:${colColors[status]}">${labels[status]}<span class="badge badge-muted">${col.length}</span></div>
+      ${col.length===0?'<div style="font-size:.8rem;color:var(--muted);text-align:center;padding:20px 0">Empty</div>':
+        col.map(o=>{
+          let items=[];try{items=JSON.parse(o.items_json||'[]');}catch(e){}
+          const due=o.fulfillment_date||o.order_date;
+          const isToday=due===today;const isTomorrow=due===tomorrowStr;
+          const warnClass=isToday?'due-today':isTomorrow?'due-soon':'';
+          return `<div class="kanban-card ${status} ${warnClass}">
+            <div class="kanban-card-name">#${o.id} — ${o.customer_name}</div>
+            <div class="kanban-card-meta">${items.map(i=>`${i.name} ×${i.qty}`).join(', ')}</div>
+            <div class="kanban-card-meta">📅 Due: ${due||'—'} · 💲$${(o.total||0).toFixed(2)}</div>
+            ${isToday?'<span class="badge badge-danger" style="margin-top:4px">DUE TODAY</span>':isTomorrow?'<span class="badge badge-warn" style="margin-top:4px">Tomorrow</span>':''}
+            <div class="kanban-card-actions">
+              ${status!=='pending'?`<button class="btn btn-secondary btn-sm" onclick="moveOrder(${o.id},'${statuses[statuses.indexOf(status)-1]}')">← Back</button>`:''}
+              ${status!=='completed'?`<button class="btn btn-primary btn-sm" onclick="moveOrder(${o.id},'${statuses[statuses.indexOf(status)+1]}')">Next →</button>`:''}
+              <button class="btn btn-secondary btn-sm" onclick="showTicket(${o.id})">🎫</button>
+            </div>
+          </div>`;
+        }).join('')}
+    </div>`;
+  }).join('');
+}
+
+async function moveOrder(id,status){
+  await upd('orders',id,{status});
+  const o=orders.find(o=>o.id===id);if(o)o.status=status;
+  renderQueue();renderOrders();renderDashboard();showToast(`#${id} → ${status}`);
+}
+
+// ── SALES ──
+function renderSales(){
+  const completed=orders.filter(o=>o.status==='completed');
+  const total=completed.reduce((s,o)=>s+(o.total||0),0);
+  const now=new Date();
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay());
+  const weekRev=completed.filter(o=>new Date(o.order_date)>=weekStart).reduce((s,o)=>s+(o.total||0),0);
+  const avg=completed.length>0?total/completed.length:0;
+  document.getElementById('salesTotal').textContent='$'+total.toFixed(2);
+  document.getElementById('salesWeek').textContent='$'+weekRev.toFixed(2);
+  document.getElementById('salesAvg').textContent='$'+avg.toFixed(2);
+
+  const drinkRev={};
+  completed.forEach(o=>{try{(JSON.parse(o.items_json||'[]')).forEach(it=>{drinkRev[it.name]=(drinkRev[it.name]||0)+(it.price*it.qty);});}catch(e){}});
+  const sorted=Object.entries(drinkRev).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const tdEl=document.getElementById('salesTopDrinks');
+  tdEl.innerHTML=sorted.length===0?'<div class="empty-state"><div class="empty-icon">🏆</div><p>No completed orders yet.</p></div>':
+    sorted.map(([name,rev],i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--peach)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--coral)">${i+1}</span>
+        <span style="font-weight:600">${name}</span>
+      </div>
+      <span style="font-weight:700;color:var(--success)">$${rev.toFixed(2)}</span>
+    </div>`).join('');
+
+  const byDay={};
+  completed.forEach(o=>{if(o.order_date)byDay[o.order_date]=(byDay[o.order_date]||0)+(o.total||0);});
+  const days=Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0])).slice(-10);
+  const dEl=document.getElementById('salesByDay');
+  if(days.length===0){dEl.innerHTML='<div class="empty-state"><div class="empty-icon">📈</div><p>No daily data yet.</p></div>';}
+  else{
+    const maxV=Math.max(...days.map(d=>d[1]));
+    dEl.innerHTML=days.map(([date,rev])=>{
+      const pct=maxV>0?(rev/maxV*100):0;
+      const d=new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:56px;font-size:.75rem;color:var(--muted);font-family:'DM Mono',monospace">${d}</span>
+        <div style="flex:1;background:var(--peach2);border-radius:4px;height:20px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--coral),var(--gold));border-radius:4px"></div>
+        </div>
+        <span style="font-weight:700;font-size:.82rem;width:55px;text-align:right">$${rev.toFixed(2)}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ── CALENDAR ──
+function renderCalendar(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent=months[calMonth]+' '+calYear;
+  document.getElementById('calDayNames').innerHTML=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  const today=new Date().toISOString().split('T')[0];
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const prevDays=new Date(calYear,calMonth,0).getDate();
+  const eventMap={};
+  calEvents.forEach(e=>{if(!eventMap[e.date])eventMap[e.date]=[];eventMap[e.date].push(e);});
+  const ordersByDate={};
+  orders.forEach(o=>{const d=o.fulfillment_date||o.order_date;if(d)ordersByDate[d]=(ordersByDate[d]||0)+1;});
+  let cells='';
+  for(let i=firstDay-1;i>=0;i--)cells+=`<div class="cal-cell other-month"><span class="cal-num">${prevDays-i}</span></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const evs=eventMap[ds]||[];const types=evs.map(e=>e.event_type);
+    let cls='cal-cell';
+    if(ds===today)cls+=' today';
+    if(types.includes('order_day'))cls+=' order-day';
+    if(types.includes('delivery')||types.includes('fulfillment'))cls+=' delivery';
+    if(types.includes('blackout'))cls+=' blackout';
+    const ordCount=ordersByDate[ds]||0;
+    cells+=`<div class="${cls}" onclick="calDayClick('${ds}')">
+      <span class="cal-num">${d}</span>
+      ${ordCount>0?`<span class="cal-badge cal-badge-orders">${ordCount} order${ordCount>1?'s':''}</span>`:''}
+      ${types.includes('delivery')||types.includes('fulfillment')?`<span class="cal-badge cal-badge-delivery">Delivery</span>`:''}
+      ${types.includes('blackout')?`<span class="cal-badge cal-badge-blackout">Closed</span>`:''}
+    </div>`;
+  }
+  const total=firstDay+daysInMonth;
+  const rem=total%7===0?0:7-(total%7);
+  for(let i=1;i<=rem;i++)cells+=`<div class="cal-cell other-month"><span class="cal-num">${i}</span></div>`;
+  document.getElementById('calGrid').innerHTML=cells;
+  renderEventsTable();
+}
+
+function calDayClick(ds){document.getElementById('cal_date').value=ds;openModal('calModal');}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+function renderEventsTable(){
+  const tbody=document.getElementById('eventsTable');
+  if(calEvents.length===0){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📅</div><p>No events yet.</p></div></td></tr>';return;}
+  const ordersByDate={};
+  orders.forEach(o=>{const d=o.fulfillment_date||o.order_date;if(d)ordersByDate[d]=(ordersByDate[d]||0)+1;});
+  const typeMap={order_day:'🟡 Order Day',fulfillment:'🟠 Fulfillment',delivery:'🟢 Delivery',blackout:'🔴 Blackout'};
+  tbody.innerHTML=[...calEvents].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>{
+    const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    return `<tr><td>${d}</td><td>${typeMap[e.event_type]||e.event_type}</td><td>${e.notes||'—'}</td>
+      <td>${ordersByDate[e.date]||0}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteCalEvent(${e.id})">Delete</button></td></tr>`;
+  }).join('');
+}
+
+async function saveCalEvent(){
+  const date=document.getElementById('cal_date').value;
+  if(!date){showToast('Select a date');return;}
+  const body={date,event_type:document.getElementById('cal_type').value,notes:document.getElementById('cal_notes').value};
+  try{
+    const res=await ins('cal_events',body);
+    calEvents.unshift(res[0]);
+    renderCalendar();renderDashboard();
+    closeModal('calModal');
+    document.getElementById('cal_date').value='';document.getElementById('cal_notes').value='';
+    showToast('✅ Event saved!');
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+async function deleteCalEvent(id){
+  if(!confirm('Delete this event?'))return;
+  await del('cal_events',id);
+  calEvents=calEvents.filter(e=>e.id!==id);
+  renderCalendar();showToast('Event deleted');
+}
+
+// ── CUSTOMERS ──
+function renderCustomers(){
+  const tbody=document.getElementById('customersTable');
+  if(customers.length===0){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👥</div><p>No customers yet.</p></div></td></tr>';return;}
+  tbody.innerHTML=customers.map(c=>{
+    const cnt=orders.filter(o=>o.customer_name===c.name).length;
+    return `<tr>
+      <td><strong>${c.name}</strong></td><td>${c.phone||'—'}</td><td>${c.email||'—'}</td>
+      <td style="font-size:.8rem">${c.favorite_drinks||'—'}</td>
+      <td><span class="badge badge-coral">${cnt}</span></td>
+      <td style="font-size:.8rem;max-width:180px">${c.notes||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Delete</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveCustomer(){
+  const name=document.getElementById('cust_name').value.trim();
+  if(!name){showToast('Enter customer name');return;}
+  const body={name,phone:document.getElementById('cust_phone').value,email:document.getElementById('cust_email').value,
+    favorite_drinks:document.getElementById('cust_favs').value,notes:document.getElementById('cust_notes').value};
+  try{
+    const res=await ins('customers',body);
+    customers.unshift(res[0]);
+    renderCustomers();renderDashboard();
+    closeModal('customerModal');
+    ['cust_name','cust_phone','cust_email','cust_favs','cust_notes'].forEach(id=>document.getElementById(id).value='');
+    showToast('✅ Customer saved!');
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+async function deleteCustomer(id){
+  if(!confirm('Delete this customer?'))return;
+  await del('customers',id);
+  customers=customers.filter(c=>c.id!==id);
+  renderCustomers();renderDashboard();showToast('Customer deleted');
+}
+
+// ── CHECKLIST ──
+function renderChecklist(){
+  const renderList=(items,el)=>{
+    if(items.length===0){el.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><p>No tasks yet.</p></div>';return;}
+    el.innerHTML=items.map(t=>`
+      <div class="check-item ${t.is_complete?'done':''}">
+        <input type="checkbox" ${t.is_complete?'checked':''} onchange="toggleTask(${t.id},this.checked)"/>
+        <span class="check-item-text">${t.title}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteTask(${t.id})">✕</button>
+      </div>`).join('');
+  };
+  renderList(tasks.filter(t=>t.category==='daily'),document.getElementById('checklistDaily'));
+  renderList(tasks.filter(t=>t.category==='event'),document.getElementById('checklistEvent'));
+}
+
+async function saveTask(){
+  const title=document.getElementById('task_text').value.trim();
+  if(!title){showToast('Enter a task');return;}
+  const body={title,category:document.getElementById('task_cat').value,is_complete:false};
+  try{
+    const res=await ins('checklist_items',body);
+    tasks.unshift(res[0]);renderChecklist();
+    closeModal('checkModal');document.getElementById('task_text').value='';
+    showToast('✅ Task added!');
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+async function toggleTask(id,checked){
+  await upd('checklist_items',id,{is_complete:checked});
+  const t=tasks.find(t=>t.id===id);if(t)t.is_complete=checked;
+  renderChecklist();
+}
+
+async function deleteTask(id){
+  await del('checklist_items',id);
+  tasks=tasks.filter(t=>t.id!==id);
+  renderChecklist();showToast('Task removed');
+}
+
+async function clearCompletedTasks(){
+  const done=tasks.filter(t=>t.is_complete);
+  for(const t of done)await del('checklist_items',t.id);
+  tasks=tasks.filter(t=>!t.is_complete);
+  renderChecklist();showToast('Cleared completed tasks');
+}
+
+// ── REPORTS ──
+function renderReports(){
+  renderBatchSummary();
+  // Burn rate
+  const burnMap={};
+  orders.filter(o=>o.status==='completed').forEach(o=>{
+    try{
+      const items=JSON.parse(o.items_json||'[]');
+      items.forEach(it=>{
+        const recipe=recipes.find(r=>r.name.toLowerCase()===it.name.toLowerCase());
+        if(!recipe)return;
+        try{(JSON.parse(recipe.ingredients_json||'[]')).forEach(ing=>{burnMap[ing.name]=(burnMap[ing.name]||0)+(ing.qty*it.qty);});}catch(e){}
+      });
+    }catch(e){}
+  });
+  const bEl=document.getElementById('reportBurn');
+  const burnEntries=Object.entries(burnMap).sort((a,b)=>b[1]-a[1]);
+  bEl.innerHTML=burnEntries.length===0?'<div class="empty-state"><div class="empty-icon">📦</div><p>Complete orders to see burn rate.</p></div>':
+    burnEntries.map(([name,qty])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--peach)">
+      <span style="font-weight:600">${name}</span><span class="badge badge-coral">${qty.toFixed(1)} used</span></div>`).join('');
+
+  // Margins
+  const mEl=document.getElementById('reportMargin');
+  mEl.innerHTML=recipes.length===0?'<div class="empty-state"><div class="empty-icon">💰</div><p>Add recipes to see margins.</p></div>':
+    recipes.map(r=>{
+      const cost=calcRecipeCost(r);const price=r.price||0;
+      const margin=price>0?((price-cost)/price*100).toFixed(1):'--';
+      const mColor=parseFloat(margin)>=60?'var(--success)':parseFloat(margin)>=30?'var(--warn)':'var(--danger)';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--peach)">
+        <span style="font-weight:600">${r.name}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:.78rem;color:var(--muted)">Cost $${cost.toFixed(2)} / Price $${price.toFixed(2)}</span>
+          <span style="font-weight:800;color:${mColor}">${margin}%</span>
+        </div>
+      </div>`;
+    }).join('');
+
+  // Busiest days
+  const dayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayCount={};
+  orders.filter(o=>o.status==='completed').forEach(o=>{
+    if(!o.order_date)return;
+    const dow=new Date(o.order_date+'T12:00:00').getDay();
+    dayCount[dow]=(dayCount[dow]||0)+1;
+  });
+  const dayEntries=Object.entries(dayCount).sort((a,b)=>b[1]-a[1]);
+  const bDEl=document.getElementById('reportBusiest');
+  bDEl.innerHTML=dayEntries.length===0?'<div class="empty-state"><div class="empty-icon">📅</div><p>Complete orders to see patterns.</p></div>':
+    `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">`+
+    dayEntries.map(([dow,cnt])=>{
+      const maxD=Math.max(...dayEntries.map(d=>d[1]));
+      return `<div style="background:var(--peach);border-radius:10px;padding:14px">
+        <div style="font-weight:700;margin-bottom:8px">${dayNames[dow]}</div>
+        <div style="background:var(--peach2);border-radius:4px;height:8px;margin-bottom:6px">
+          <div style="height:100%;width:${(cnt/maxD*100).toFixed(0)}%;background:linear-gradient(90deg,var(--coral),var(--gold));border-radius:4px"></div>
+        </div>
+        <div style="font-size:.8rem;color:var(--muted)">${cnt} order${cnt>1?'s':''}</div>
+      </div>`;
+    }).join('')+'</div>';
+}
+
+function renderBatchSummary(){
+  const date=document.getElementById('batchDate').value;
+  const el=document.getElementById('batchSummary');
+  if(!date){el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div><p>Select a fulfillment date to see what you need to prep.</p></div>';return;}
+  const dayOrders=orders.filter(o=>['pending','confirmed','ready'].includes(o.status)&&(o.fulfillment_date===date||(!o.fulfillment_date&&o.order_date===date)));
+  if(dayOrders.length===0){el.innerHTML=`<div class="alert alert-success">✅ No active orders for ${date}.</div>`;return;}
+  const needMap={};
+  dayOrders.forEach(o=>{
+    try{
+      (JSON.parse(o.items_json||'[]')).forEach(it=>{
+        const recipe=recipes.find(r=>r.name.toLowerCase()===it.name.toLowerCase());
+        if(!recipe)return;
+        try{
+          (JSON.parse(recipe.ingredients_json||'[]')).forEach(ing=>{
+            const key=`${ing.name}||${ing.unit}`;
+            needMap[key]=(needMap[key]||0)+(ing.qty*it.qty);
+          });
+        }catch(e){}
+      });
+    }catch(e){}
+  });
+  const d=new Date(date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  el.innerHTML=`<div style="margin-bottom:12px"><strong style="font-size:1rem">${d}</strong> — ${dayOrders.length} order(s) · ${dayOrders.reduce((s,o)=>s+(o.total||0),0).toFixed(2)} revenue</div>`+
+    Object.entries(needMap).map(([key,qty])=>{
+      const[name,unit]=key.split('||');
+      const inv=inventory.find(i=>i.ingredient_name.toLowerCase()===name.toLowerCase());
+      const onHand=inv?inv.quantity:0;const enough=onHand>=qty;
+      return `<div class="batch-ing">
+        <span style="font-weight:600">${name}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:.85rem;color:var(--muted)">Need: ${qty.toFixed(1)} ${unit}</span>
+          <span style="font-size:.85rem">On hand: ${onHand} ${inv?inv.unit:unit}</span>
+          <span class="badge ${enough?'badge-green':'badge-danger'}">${enough?'✓ OK':'⚠️ Short'}</span>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+init();
+</script>
+</body>
+</html>
