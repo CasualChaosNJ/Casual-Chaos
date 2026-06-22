@@ -207,6 +207,14 @@ tbody tr:hover{background:var(--peach);}
 .due-today{border-left-color:var(--danger)!important;}
 .due-soon{border-left-color:var(--warn)!important;}
 
+/* INV FILTER BUTTONS */
+.inv-filter-btn{padding:6px 12px;border-radius:20px;border:1.5px solid var(--peach2);background:var(--cream);color:var(--muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.inv-filter-btn:hover{border-color:var(--coral);color:var(--coral);}
+.inv-filter-btn.active{background:var(--coral);border-color:var(--coral);color:var(--white);}
+.cat-group-header{background:var(--peach)!important;}
+.cat-group-header td{font-weight:700;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 14px!important;}
+.cat-subtotal td{font-weight:700;font-size:.82rem;background:var(--peach2)!important;color:var(--espresso);}
+
 /* PRINT */
 @media print{
   .app-header,.nav-bar,.btn,.modal-overlay,#toast{display:none!important;}
@@ -284,14 +292,35 @@ tbody tr:hover{background:var(--peach);}
 <div id="tab-inventory" class="tab-panel">
   <div class="sunset-bar"></div>
   <div class="section-header">
-    <div><div class="section-title">📦 Inventory</div><div class="section-sub">Track ingredients and reorder levels</div></div>
-    <button class="btn btn-primary" onclick="openModal('inventoryModal')">+ Add Ingredient</button>
+    <div><div class="section-title">📦 Inventory</div><div class="section-sub">Track ingredients, costs, and reorder levels</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="openBulkRestock()">📦 Bulk Restock</button>
+      <button class="btn btn-primary" onclick="openModal('inventoryModal')">+ Add Ingredient</button>
+    </div>
+  </div>
+  <div class="grid-4" id="invSummaryCards" style="margin-bottom:20px"></div>
+  <div class="card" style="padding:14px 20px;margin-bottom:16px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Filter:</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="invCatFilters">
+        <button class="inv-filter-btn active" onclick="setInvFilter('',this)">All</button>
+        <button class="inv-filter-btn" onclick="setInvFilter('Alcohol',this)">🍶 Alcohol</button>
+        <button class="inv-filter-btn" onclick="setInvFilter('Non-Alcohol',this)">🧃 Non-Alcohol</button>
+        <button class="inv-filter-btn" onclick="setInvFilter('Supplies',this)">🛍️ Supplies</button>
+        <button class="inv-filter-btn" onclick="setInvFilter('Perishables',this)">🥬 Perishables</button>
+        <button class="inv-filter-btn" onclick="setInvFilter('Non-Perishable',this)">🥫 Non-Perishable</button>
+        <button class="inv-filter-btn" onclick="setInvFilter('Equipment',this)">⚙️ Equipment</button>
+        <button class="inv-filter-btn" onclick="setInvFilter('Other',this)">📁 Other</button>
+      </div>
+    </div>
   </div>
   <div class="card">
+    <div id="invLowAlert"></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Ingredient</th><th>Qty on Hand</th><th>Unit</th><th>Unit Cost</th><th>Reorder At</th><th>Status</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Ingredient</th><th>Category</th><th>Qty on Hand</th><th>Unit Cost</th><th>Total Value</th><th>Reorder At</th><th>Supplier</th><th>Last Restocked</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="inventoryTable"></tbody>
+        <tfoot id="inventoryFoot"></tfoot>
       </table>
     </div>
   </div>
@@ -495,17 +524,35 @@ tbody tr:hover{background:var(--peach);}
 <!-- Inventory Modal -->
 <div class="modal-overlay" id="inventoryModal">
   <div class="modal">
-    <div class="modal-title">📦 Add Ingredient</div>
+    <div class="modal-title" id="invModalTitle">📦 Add Ingredient</div>
+    <input type="hidden" id="inv_id"/>
     <div class="form-row">
-      <div class="form-group"><label>Ingredient Name</label><input type="text" id="inv_name" placeholder="e.g. Mango Puree"/></div>
-      <div class="form-group"><label>Unit</label>
-        <select id="inv_unit"><option>oz</option><option>lbs</option><option>gallons</option><option>liters</option><option>cups</option><option>each</option><option>bags</option><option>bottles</option></select>
+      <div class="form-group"><label>Ingredient Name</label><input type="text" id="inv_name" placeholder="e.g. Hennessy"/></div>
+      <div class="form-group"><label>Category</label>
+        <select id="inv_cat">
+          <option value="Alcohol">🍶 Alcohol</option>
+          <option value="Non-Alcohol">🧃 Non-Alcohol</option>
+          <option value="Supplies">🛍️ Supplies</option>
+          <option value="Perishables">🥬 Perishables</option>
+          <option value="Non-Perishable">🥫 Non-Perishable</option>
+          <option value="Equipment">⚙️ Equipment</option>
+          <option value="Other">📁 Other</option>
+        </select>
       </div>
     </div>
     <div class="form-row">
+      <div class="form-group"><label>Unit</label>
+        <select id="inv_unit"><option>oz</option><option>lbs</option><option>gallons</option><option>liters</option><option>cups</option><option>each</option><option>bags</option><option>bottles</option></select>
+      </div>
       <div class="form-group"><label>Qty on Hand</label><input type="number" id="inv_qty" placeholder="0" step="0.1"/></div>
+    </div>
+    <div class="form-row">
       <div class="form-group"><label>Unit Cost ($)</label><input type="number" id="inv_cost" placeholder="0.00" step="0.01"/></div>
       <div class="form-group"><label>Reorder At</label><input type="number" id="inv_reorder" placeholder="0" step="0.1"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Supplier / Where to Buy</label><input type="text" id="inv_supplier" placeholder="e.g. Costco, Total Wine"/></div>
+      <div class="form-group"><label>Last Restocked</label><input type="date" id="inv_restocked"/></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('inventoryModal')">Cancel</button>
@@ -600,6 +647,19 @@ tbody tr:hover{background:var(--peach);}
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('checkModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Restock Modal -->
+<div class="modal-overlay" id="bulkRestockModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">📦 Bulk Restock</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">Enter new quantities for low-stock items. Today's date will be set as Last Restocked.</p>
+    <div id="bulkRestockList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('bulkRestockModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBulkRestock()">✅ Save All Updates</button>
     </div>
   </div>
 </div>
@@ -913,54 +973,168 @@ async function deleteRecipe(id){
 }
 
 // ── INVENTORY ──
+let invCategoryFilter='';
+function setInvFilter(cat,btn){
+  invCategoryFilter=cat;
+  document.querySelectorAll('.inv-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderInventory();
+}
+
+function renderInvSummary(){
+  const total=inventory.reduce((s,i)=>s+((i.unit_cost||0)*(i.quantity||0)),0);
+  const low=inventory.filter(i=>i.quantity<=i.reorder_threshold).length;
+  const cats=[...new Set(inventory.map(i=>i.category||'Other'))].length;
+  const alcoholVal=inventory.filter(i=>i.category==='Alcohol').reduce((s,i)=>s+((i.unit_cost||0)*(i.quantity||0)),0);
+  const el=document.getElementById('invSummaryCards');
+  if(!el)return;
+  el.innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total Value</div><div class="stat-value">$${total.toFixed(2)}</div><div class="stat-sub">All inventory on hand</div></div>
+    <div class="stat-card gold"><div class="stat-label">Alcohol Value</div><div class="stat-value">$${alcoholVal.toFixed(2)}</div><div class="stat-sub">Spirits & liquors</div></div>
+    <div class="stat-card pink"><div class="stat-label">Low Stock</div><div class="stat-value">${low}</div><div class="stat-sub">Need restocking</div></div>
+    <div class="stat-card green"><div class="stat-label">Categories</div><div class="stat-value">${cats}</div><div class="stat-sub">Active categories</div></div>`;
+}
+
 function renderInventory(){
+  renderInvSummary();
   const tbody=document.getElementById('inventoryTable');
-  if(inventory.length===0){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><p>No ingredients yet.</p></div></td></tr>';return;}
-  tbody.innerHTML=inventory.map(i=>{
-    const low=i.quantity<=i.reorder_threshold;
-    const pct=i.reorder_threshold>0?Math.min(100,(i.quantity/i.reorder_threshold)*100):100;
-    const color=low?'var(--danger)':pct<150?'var(--warn)':'var(--success)';
-    return `<tr>
-      <td><strong>${i.ingredient_name}</strong></td>
-      <td><div>${i.quantity} ${i.unit}</div>
-        <div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${Math.min(100,pct)}%;background:${color}"></div></div></div>
-      </td>
-      <td>${i.unit}</td><td>$${(i.unit_cost||0).toFixed(2)}</td>
-      <td>${i.reorder_threshold} ${i.unit}</td>
-      <td>${low?'<span class="badge badge-danger">Low</span>':'<span class="badge badge-green">OK</span>'}</td>
-      <td>
-        <button class="btn btn-secondary btn-sm" onclick="adjustQty(${i.id})">Adjust</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteInventory(${i.id})">Del</button>
-      </td>
-    </tr>`;
-  }).join('');
+  const tfoot=document.getElementById('inventoryFoot');
+  const lowAlert=document.getElementById('invLowAlert');
+  const filtered=invCategoryFilter?inventory.filter(i=>(i.category||'Other')===invCategoryFilter):inventory;
+  if(filtered.length===0){
+    tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📦</div><p>${invCategoryFilter?'No items in this category.':'No ingredients yet.'}</p></div></td></tr>`;
+    if(tfoot)tfoot.innerHTML='';if(lowAlert)lowAlert.innerHTML='';return;
+  }
+  const lowItems=filtered.filter(i=>i.quantity<=i.reorder_threshold);
+  if(lowAlert)lowAlert.innerHTML=lowItems.length>0?`<div class="alert alert-warn" style="margin-bottom:14px">⚠️ ${lowItems.length} item(s) need restocking: ${lowItems.map(i=>i.ingredient_name).join(', ')}</div>`:'';
+  const catEmoji={Alcohol:'🍶','Non-Alcohol':'🧃',Supplies:'🛍️',Perishables:'🥬','Non-Perishable':'🥫',Equipment:'⚙️',Other:'📁'};
+  const cats=invCategoryFilter?[invCategoryFilter]:[...new Set(inventory.map(i=>i.category||'Other'))].sort();
+  let html='';let grandTotal=0;
+  cats.forEach(cat=>{
+    const items=filtered.filter(i=>(i.category||'Other')===cat);
+    if(items.length===0)return;
+    const catVal=items.reduce((s,i)=>s+((i.unit_cost||0)*(i.quantity||0)),0);
+    grandTotal+=catVal;
+    if(!invCategoryFilter)html+=`<tr class="cat-group-header"><td colspan="10">${catEmoji[cat]||'📁'} ${cat}</td></tr>`;
+    items.forEach(i=>{
+      const low=i.quantity<=i.reorder_threshold;
+      const pct=i.reorder_threshold>0?Math.min(100,(i.quantity/i.reorder_threshold)*100):100;
+      const barColor=low?'var(--danger)':pct<150?'var(--warn)':'var(--success)';
+      const val=(i.unit_cost||0)*(i.quantity||0);
+      const lastR=i.last_restocked?new Date(i.last_restocked+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+      html+=`<tr>
+        <td><strong>${i.ingredient_name}</strong></td>
+        <td><span class="badge badge-muted" style="font-size:.7rem">${i.category||'Other'}</span></td>
+        <td><div style="font-weight:600">${i.quantity} ${i.unit}</div>
+          <div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${Math.min(100,pct)}%;background:${barColor}"></div></div></div>
+        </td>
+        <td>$${(i.unit_cost||0).toFixed(2)}</td>
+        <td style="font-weight:600">$${val.toFixed(2)}</td>
+        <td>${i.reorder_threshold} ${i.unit}</td>
+        <td style="font-size:.82rem;color:var(--muted)">${i.supplier||'—'}</td>
+        <td style="font-size:.82rem;color:var(--muted)">${lastR}</td>
+        <td>${low?'<span class="badge badge-danger">⚠️ Low</span>':'<span class="badge badge-green">OK</span>'}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" onclick="openEditInventory(${i.id})">Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="adjustQty(${i.id})">Qty</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteInventory(${i.id})">Del</button>
+        </td>
+      </tr>`;
+    });
+    if(!invCategoryFilter)html+=`<tr class="cat-subtotal"><td colspan="3"></td><td colspan="2" style="padding:8px 14px">Subtotal: $${catVal.toFixed(2)}</td><td colspan="5"></td></tr>`;
+  });
+  tbody.innerHTML=html;
+  if(tfoot)tfoot.innerHTML=`<tr style="background:var(--espresso);color:var(--white)"><td colspan="3" style="padding:10px 14px;font-weight:700">TOTAL INVENTORY VALUE</td><td colspan="2" style="padding:10px 14px;font-weight:800;font-size:1rem;font-family:'Playfair Display',serif">$${grandTotal.toFixed(2)}</td><td colspan="5"></td></tr>`;
+}
+
+function openEditInventory(id){
+  const i=inventory.find(inv=>inv.id===id);if(!i)return;
+  document.getElementById('inv_id').value=i.id;
+  document.getElementById('invModalTitle').textContent='✏️ Edit Ingredient';
+  document.getElementById('inv_name').value=i.ingredient_name;
+  document.getElementById('inv_cat').value=i.category||'Other';
+  document.getElementById('inv_unit').value=i.unit||'oz';
+  document.getElementById('inv_qty').value=i.quantity||0;
+  document.getElementById('inv_cost').value=i.unit_cost||0;
+  document.getElementById('inv_reorder').value=i.reorder_threshold||0;
+  document.getElementById('inv_supplier').value=i.supplier||'';
+  document.getElementById('inv_restocked').value=i.last_restocked||'';
+  openModal('inventoryModal');
+}
+
+function openBulkRestock(){
+  const low=inventory.filter(i=>i.quantity<=i.reorder_threshold);
+  if(low.length===0){showToast('✅ All items are well stocked!');return;}
+  document.getElementById('bulkRestockList').innerHTML=low.map(i=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--peach)">
+      <div style="flex:1">
+        <div style="font-weight:700">${i.ingredient_name}</div>
+        <div style="font-size:.78rem;color:var(--muted)">${i.category||'Other'}${i.supplier?' · Buy at: '+i.supplier:''}</div>
+        <div style="font-size:.78rem;color:var(--danger)">Current: ${i.quantity} ${i.unit} · Reorder at: ${i.reorder_threshold}</div>
+      </div>
+      <input type="number" class="bulk-qty-inp" data-id="${i.id}" placeholder="New qty" step="0.1" min="0"
+        style="width:88px;padding:7px 10px;border:1.5px solid var(--peach2);border-radius:8px;font-size:.9rem;background:var(--cream);outline:none"/>
+    </div>`).join('');
+  openModal('bulkRestockModal');
+}
+
+async function saveBulkRestock(){
+  const inputs=document.querySelectorAll('.bulk-qty-inp');
+  const today=new Date().toISOString().split('T')[0];
+  let updated=0;
+  for(const inp of inputs){
+    const qty=parseFloat(inp.value);
+    if(isNaN(qty)||inp.value==='')continue;
+    const id=parseInt(inp.dataset.id);
+    await upd('inventory',id,{quantity:qty,last_restocked:today});
+    const item=inventory.find(i=>i.id===id);
+    if(item){item.quantity=qty;item.last_restocked=today;}
+    updated++;
+  }
+  closeModal('bulkRestockModal');
+  renderInventory();renderDashboard();renderReports();renderRecipes();
+  showToast(`✅ ${updated} item(s) restocked!`);
 }
 
 async function saveInventory(){
   const name=document.getElementById('inv_name').value.trim();
   if(!name){showToast('Enter ingredient name');return;}
-  const body={ingredient_name:name,unit:document.getElementById('inv_unit').value,
+  const editId=document.getElementById('inv_id').value;
+  const body={
+    ingredient_name:name,
+    category:document.getElementById('inv_cat').value,
+    unit:document.getElementById('inv_unit').value,
     quantity:parseFloat(document.getElementById('inv_qty').value)||0,
     unit_cost:parseFloat(document.getElementById('inv_cost').value)||0,
-    reorder_threshold:parseFloat(document.getElementById('inv_reorder').value)||0};
+    reorder_threshold:parseFloat(document.getElementById('inv_reorder').value)||0,
+    supplier:document.getElementById('inv_supplier').value,
+    last_restocked:document.getElementById('inv_restocked').value||null
+  };
   try{
-    const res=await ins('inventory',body);
-    inventory.unshift(res[0]);
+    if(editId){
+      await upd('inventory',editId,body);
+      const idx=inventory.findIndex(i=>i.id==editId);
+      if(idx>-1)inventory[idx]={...inventory[idx],...body};
+      showToast('✅ Ingredient updated!');
+    } else {
+      const res=await ins('inventory',body);
+      inventory.unshift(res[0]);
+      showToast('✅ Ingredient saved!');
+    }
     renderInventory();renderDashboard();renderReports();renderRecipes();
     closeModal('inventoryModal');
-    ['inv_name','inv_qty','inv_cost','inv_reorder'].forEach(id=>document.getElementById(id).value='');
-    showToast('✅ Ingredient saved!');
-    // If we came from recipe modal, reopen it and refresh dropdowns
+    document.getElementById('inv_id').value='';
+    document.getElementById('invModalTitle').textContent='📦 Add Ingredient';
+    ['inv_name','inv_qty','inv_cost','inv_reorder','inv_supplier','inv_restocked'].forEach(id=>document.getElementById(id).value='');
     if(window._fromRecipeModal){
       window._fromRecipeModal=false;
-      // Refresh any existing ing-select dropdowns in ingRows
       document.getElementById('ingNoInventory').style.display='none';
       document.querySelectorAll('#ingRows .ing-select').forEach(sel=>{
-        const currentVal=sel.value;
-        sel.innerHTML=inventory.map(i=>`<option value="${i.id}" data-unit="${i.unit}"${i.id==currentVal?' selected':''}>${i.ingredient_name}</option>`).join('');
+        const cv=sel.value;
+        sel.innerHTML=inventory.map(i=>`<option value="${i.id}" data-unit="${i.unit}"${i.id==cv?' selected':''}>${i.ingredient_name}</option>`).join('');
       });
       openModal('recipeModal');
-      showToast('✅ Ingredient added — now select it in your recipe');
+      showToast('✅ Ingredient added — select it in your recipe');
     }
   }catch(e){showToast('Error: '+e.message);}
 }
