@@ -1207,7 +1207,7 @@ function renderInventory(){
           <div style="font-weight:700;font-size:.95rem">${useContent?unitsOnHand.toFixed(2)+' '+i.unit+(unitsOnHand!==1?'s':''):i.quantity.toFixed(1)+' '+contentsUnit}</div>
           ${useContent?`<div style="font-size:.75rem;color:var(--muted)">(${i.quantity.toFixed(1)} ${contentsUnit} total)</div>`:''}
           <div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${Math.min(100,pct)}%;background:${barColor}"></div></div></div>
-          ${i.reorder_threshold>0?`<div style="font-size:.72rem;color:var(--muted)">Reorder: ${useContent?(i.reorder_threshold/ozPerUnit).toFixed(1)+' '+i.unit+'s':i.reorder_threshold.toFixed(1)+' '+contentsUnit}${i.par_level?\` · Par: ${useContent?(i.par_level/ozPerUnit).toFixed(1)+' '+i.unit+'s':i.par_level.toFixed(1)+' '+contentsUnit}\`:''}</div>`:''}
+          ${i.reorder_threshold>0?`<div style="font-size:.72rem;color:var(--muted)">Reorder: ${useContent?(i.reorder_threshold/ozPerUnit).toFixed(1)+' '+i.unit+'s':i.reorder_threshold.toFixed(1)+' '+contentsUnit}${i.par_level?' · Par: '+(useContent?(i.par_level/ozPerUnit).toFixed(1)+' '+i.unit+'s':i.par_level.toFixed(1)+' '+contentsUnit):''}</div>`:''}
         </td>
         <td>
           <div style="font-weight:600">$${(i.unit_cost||0).toFixed(2)}/${i.unit}</div>
