@@ -1218,17 +1218,25 @@ function renderInventory(){
 function openEditInventory(id){
   const i=inventory.find(inv=>inv.id===id);if(!i)return;
   document.getElementById('inv_id').value=i.id;
-  document.getElementById('invModalTitle').textContent='✏️ Edit Ingredient';
+  document.getElementById('invModalTitle').textContent='✏️ Edit Inventory Item';
   document.getElementById('inv_name').value=i.ingredient_name||'';
   document.getElementById('inv_cat').value=i.category||'Other';
   document.getElementById('inv_unit').value=i.unit||'bottle';
-  document.getElementById('inv_qty').value=i.quantity||0;
+  // Back-calculate: stored quantity is in content units (oz/count)
+  // Show the user bottles/units on hand, not the raw stored number
+  const ozPU=parseFloat(i.oz_per_unit)||0;
+  const cu=i.contents_unit||'oz';
+  const useContent=ozPU>0&&cu!=='N/A';
+  const displayQty=useContent?(i.quantity/ozPU):i.quantity;
+  const displayReorder=useContent&&i.reorder_threshold>0?(i.reorder_threshold/ozPU):i.reorder_threshold||0;
+  const displayPar=useContent&&i.par_level>0?(i.par_level/ozPU):(i.par_level||'');
+  document.getElementById('inv_qty').value=parseFloat(displayQty.toFixed(4));
   document.getElementById('inv_oz_per_unit').value=i.oz_per_unit||'';
   const cuEl=document.getElementById('inv_contents_unit');
-  if(cuEl)cuEl.value=i.contents_unit||'oz';
+  if(cuEl)cuEl.value=cu;
   document.getElementById('inv_cost').value=i.unit_cost||0;
-  document.getElementById('inv_reorder').value=i.reorder_threshold||0;
-  document.getElementById('inv_par').value=i.par_level||'';
+  document.getElementById('inv_reorder').value=parseFloat(displayReorder.toFixed(4));
+  document.getElementById('inv_par').value=displayPar?parseFloat(parseFloat(displayPar).toFixed(4)):'';
   document.getElementById('inv_ordered').value=i.units_ordered||'';
   document.getElementById('inv_supplier').value=i.supplier||'';
   document.getElementById('inv_supplier_url').value=i.supplier_url||'';
