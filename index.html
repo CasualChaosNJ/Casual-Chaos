@@ -959,21 +959,29 @@ function calcRecipePricing(cost){
 }
 
 // Ingredient rows
+function getContentsLabel(inv){
+  // Returns the meaningful measurement unit for recipe use
+  // If contents_unit is set and not N/A, use it. Otherwise fall back to inventory unit.
+  if(inv.contents_unit&&inv.contents_unit!=='N/A')return inv.contents_unit;
+  return inv.unit;
+}
+
 function addIngRow(name='',qty=''){
   const wrap=document.getElementById('ingRows');
   const noInvEl=document.getElementById('ingNoInventory');
   if(inventory.length===0){noInvEl.style.display='';return;}
   noInvEl.style.display='none';
-  // Find matching inventory item for pre-selection
   const matchedInv=name?inventory.find(i=>i.ingredient_name.toLowerCase()===name.toLowerCase()):null;
   const selectedId=matchedInv?matchedInv.id:(inventory[0]?inventory[0].id:'');
+  const firstInv=inventory.find(i=>i.id==selectedId);
+  const displayUnit=matchedInv?getContentsLabel(matchedInv):(firstInv?getContentsLabel(firstInv):'');
   const div=document.createElement('div');div.className='ing-row';
   div.innerHTML=`
     <select class="ing-select" style="flex:2" onchange="syncIngUnit(this)">
-      ${inventory.map(i=>`<option value="${i.id}" data-unit="${i.unit}"${i.id==selectedId?' selected':''}>${i.ingredient_name}</option>`).join('')}
+      ${inventory.map(i=>`<option value="${i.id}" data-unit="${getContentsLabel(i)}"${i.id==selectedId?' selected':''}>${i.ingredient_name}</option>`).join('')}
     </select>
     <input class="ing-qty" type="number" placeholder="Qty" step="0.1" min="0" value="${qty}" style="width:72px"/>
-    <span class="ing-unit-label" style="font-size:.82rem;color:var(--muted);min-width:36px">${matchedInv?matchedInv.unit:(inventory[0]?inventory[0].unit:'')}</span>
+    <span class="ing-unit-label" style="font-size:.82rem;font-weight:600;color:var(--coral);min-width:36px">${displayUnit}</span>
     <button class="ing-del" onclick="this.parentElement.remove()" type="button">✕</button>`;
   wrap.appendChild(div);
 }
@@ -1087,14 +1095,19 @@ function calcInvPreview(){
   if(qty>0&&cost>0){
     const totalVal=(qty*cost).toFixed(2);
     const showContents=contents>0&&contentsUnit!=='N/A';
-    const costPerContent=showContents?(cost/contents).toFixed(4):'—';
     const totalContents=showContents?(qty*contents).toFixed(1):'—';
+    const costPerContent=showContents?(cost/contents).toFixed(4):'—';
+    const workingReorder=showContents?(reorder*contents):reorder;
+    const workingPar=showContents?(par*contents):par;
+    const workingQty=showContents?parseFloat(totalContents):qty;
     let status='';
-    if(reorder>0){status=qty<=reorder?'⚠️ Below reorder level':qty<par?'🟡 Below par level':'✅ Well stocked';}
+    if(reorder>0){status=workingQty<=workingReorder?'⚠️ Below reorder':'🟡 Check par level';}
     el.style.display='';
-    el.innerHTML=`<strong>Preview:</strong> ${qty} ${unit}(s) × $${cost} = <strong>$${totalVal}</strong>`+
-      (showContents?` · Total ${contentsUnit}: ${totalContents} · Cost/${contentsUnit}: $${costPerContent}`:'')+
-      (status?` · ${status}`:'');
+    el.innerHTML=
+      `<strong>Will store:</strong> ${showContents?`${totalContents} ${contentsUnit} (${qty} ${unit}s)`:qty+' '+unit} · `+
+      `<strong>Total value: $${totalVal}</strong>`+
+      (showContents?` · $${costPerContent}/${contentsUnit}`:'')+
+      (showContents?`<br><span style="font-size:.78rem;color:var(--muted)">Reorder triggers at ${workingReorder.toFixed(1)} ${contentsUnit} · Par at ${workingPar.toFixed(1)} ${contentsUnit}</span>`:'');
   } else { el.style.display='none'; }
 }
 
@@ -1172,9 +1185,10 @@ function renderInventory(){
         </td>
         <td><span class="badge badge-muted" style="font-size:.7rem">${i.category||'Other'}</span></td>
         <td>
-          <div style="font-weight:600">${i.quantity} ${i.unit}${ozPerUnit>0?` <span style="font-size:.75rem;color:var(--muted)">(${totalOz} ${contentsUnit})</span>`:''}</div>
+          <div style="font-weight:700;font-size:.95rem">${i.quantity.toFixed(1)} ${contentsUnit}</div>
+          ${ozPerUnit>0?`<div style="font-size:.75rem;color:var(--muted)">(${(i.quantity/ozPerUnit).toFixed(2)} ${i.unit}s on hand)</div>`:''}
           <div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${Math.min(100,pct)}%;background:${barColor}"></div></div></div>
-          ${i.par_level?`<div style="font-size:.72rem;color:var(--muted)">Par: ${i.par_level} · Reorder: ${i.reorder_threshold||0}</div>`:''}
+          ${i.reorder_threshold>0?`<div style="font-size:.72rem;color:var(--muted)">Reorder: ${i.reorder_threshold.toFixed(1)} ${contentsUnit}${i.par_level?` · Par: ${i.par_level.toFixed(1)} ${contentsUnit}`:''}</div>`:''}
         </td>
         <td>
           <div>$${(i.unit_cost||0).toFixed(2)}/${i.unit}</div>
@@ -1239,7 +1253,7 @@ function openBulkRestock(){
           ${i.supplier_url?`<a href="${i.supplier_url}" target="_blank" style="font-size:.75rem;color:var(--coral)">🔗 Order online ↗</a>`:''}
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
-          <label style="font-size:.75rem;color:var(--muted);font-weight:600">New Qty</label>
+          <label style="font-size:.75rem;color:var(--muted);font-weight:600">${i.oz_per_unit?`${i.unit}s to add`:'New qty'}</label>
           <input type="number" class="bulk-qty-inp" data-id="${i.id}" placeholder="e.g. 4" step="0.1" min="0"
             style="width:80px;padding:7px 10px;border:1.5px solid var(--peach2);border-radius:8px;font-size:.9rem;background:var(--cream);outline:none"/>
         </div>
@@ -1253,12 +1267,17 @@ async function saveBulkRestock(){
   const today=new Date().toISOString().split('T')[0];
   let updated=0;
   for(const inp of inputs){
-    const qty=parseFloat(inp.value);
-    if(isNaN(qty)||inp.value==='')continue;
+    const entered=parseFloat(inp.value);
+    if(isNaN(entered)||inp.value==='')continue;
     const id=parseInt(inp.dataset.id);
-    await upd('inventory',id,{quantity:qty,last_restocked:today});
-    const item=inventory.find(i=>i.id===id);
-    if(item){item.quantity=qty;item.last_restocked=today;}
+    const item=inventory.find(i=>i.id===id);if(!item)continue;
+    const cu=item.contents_unit||'oz';
+    const ozPU=item.oz_per_unit||0;
+    const useContent=ozPU>0&&cu!=='N/A';
+    // Add bottles × oz_per_unit to existing quantity
+    const newQty=useContent?(item.quantity+(entered*ozPU)):entered;
+    await upd('inventory',id,{quantity:newQty,last_restocked:today});
+    item.quantity=newQty;item.last_restocked=today;
     updated++;
   }
   closeModal('bulkRestockModal');
@@ -1270,16 +1289,29 @@ async function saveInventory(){
   const name=document.getElementById('inv_name').value.trim();
   if(!name){showToast('Enter ingredient name');return;}
   const editId=document.getElementById('inv_id').value;
+  const unitsEntered=parseFloat(document.getElementById('inv_qty').value)||0;
+  const ozPerUnit=parseFloat(document.getElementById('inv_oz_per_unit').value)||0;
+  const contentsUnit=document.getElementById('inv_contents_unit')?document.getElementById('inv_contents_unit').value:'oz';
+  // Convert to working quantity in content units (oz, count, etc.)
+  // If oz_per_unit defined → store total contents (e.g. 1 bottle × 59oz = 59oz)
+  // If contents_unit is count or N/A → store units directly
+  const useContentTracking=ozPerUnit>0&&contentsUnit!=='N/A';
+  const workingQty=useContentTracking?(unitsEntered*ozPerUnit):unitsEntered;
+  const reorderUnits=parseFloat(document.getElementById('inv_reorder').value)||0;
+  const parUnits=parseFloat(document.getElementById('inv_par').value)||0;
+  // Convert reorder/par thresholds to content units too
+  const workingReorder=useContentTracking?(reorderUnits*ozPerUnit):reorderUnits;
+  const workingPar=useContentTracking&&parUnits>0?(parUnits*ozPerUnit):parUnits||null;
   const body={
     ingredient_name:name,
     category:document.getElementById('inv_cat').value,
     unit:document.getElementById('inv_unit').value,
-    quantity:parseFloat(document.getElementById('inv_qty').value)||0,
-    oz_per_unit:parseFloat(document.getElementById('inv_oz_per_unit').value)||null,
-    contents_unit:(document.getElementById('inv_contents_unit')?document.getElementById('inv_contents_unit').value:'oz'),
+    quantity:workingQty,
+    oz_per_unit:ozPerUnit||null,
+    contents_unit:contentsUnit,
     unit_cost:parseFloat(document.getElementById('inv_cost').value)||0,
-    reorder_threshold:parseFloat(document.getElementById('inv_reorder').value)||0,
-    par_level:parseFloat(document.getElementById('inv_par').value)||null,
+    reorder_threshold:workingReorder,
+    par_level:workingPar,
     units_ordered:parseFloat(document.getElementById('inv_ordered').value)||null,
     supplier:document.getElementById('inv_supplier').value||null,
     supplier_url:document.getElementById('inv_supplier_url').value||null,
@@ -1313,7 +1345,7 @@ async function saveInventory(){
       document.getElementById('ingNoInventory').style.display='none';
       document.querySelectorAll('#ingRows .ing-select').forEach(sel=>{
         const cv=sel.value;
-        sel.innerHTML=inventory.map(i=>`<option value="${i.id}" data-unit="${i.unit}"${i.id==cv?' selected':''}>${i.ingredient_name}</option>`).join('');
+        sel.innerHTML=inventory.map(i=>`<option value="${i.id}" data-unit="${getContentsLabel(i)}"${i.id==cv?' selected':''}>${i.ingredient_name}</option>`).join('');
       });
       openModal('recipeModal');
       showToast('✅ Ingredient added — select it in your recipe');
@@ -1323,12 +1355,28 @@ async function saveInventory(){
 
 async function adjustQty(id){
   const item=inventory.find(i=>i.id===id);if(!item)return;
-  const val=prompt(`Adjust qty for ${item.ingredient_name}\nCurrent: ${item.quantity} ${item.unit}\n\nEnter new quantity:`);
+  const cu=item.contents_unit||'oz';
+  const ozPU=item.oz_per_unit||0;
+  const useContent=ozPU>0&&cu!=='N/A';
+  const currentBottles=useContent?(item.quantity/ozPU).toFixed(2):item.quantity;
+  const promptMsg=useContent
+    ?`Restock ${item.ingredient_name}\nCurrently: ${item.quantity.toFixed(1)} ${cu} (~${currentBottles} ${item.unit}s)\n\nHow many ${item.unit}s are you adding?`
+    :`Adjust ${item.ingredient_name}\nCurrent: ${item.quantity} ${cu}\n\nEnter new total quantity (${cu}):`;
+  const val=prompt(promptMsg);
   if(val===null)return;
-  const qty=parseFloat(val);if(isNaN(qty)){showToast('Invalid quantity');return;}
-  await upd('inventory',id,{quantity:qty});
-  item.quantity=qty;
-  renderInventory();renderDashboard();renderReports();renderRecipes();showToast('✅ Quantity updated');
+  const entered=parseFloat(val);if(isNaN(entered)){showToast('Invalid quantity');return;}
+  const today=new Date().toISOString().split('T')[0];
+  let newQty;
+  if(useContent){
+    // Adding bottles → convert to oz and ADD to existing
+    newQty=item.quantity+(entered*ozPU);
+  } else {
+    newQty=entered;
+  }
+  await upd('inventory',id,{quantity:newQty,last_restocked:today});
+  item.quantity=newQty;item.last_restocked=today;
+  renderInventory();renderDashboard();renderReports();renderRecipes();
+  showToast(useContent?`✅ Added ${entered} ${item.unit}(s) = +${(entered*ozPU).toFixed(1)} ${cu}`:'✅ Quantity updated');
 }
 
 async function deleteInventory(id){
@@ -1448,11 +1496,60 @@ async function saveOrder(){
   }catch(e){showToast('Error: '+e.message);}
 }
 
+async function calcOrderDeductions(orderId){
+  // Returns map of {invId: ozToDeduct, invItem, totalOz} for an order
+  const o=orders.find(o=>o.id===orderId);if(!o)return[];
+  let items=[];try{items=JSON.parse(o.items_json||'[]');}catch(e){}
+  const deductions=[];
+  items.forEach(it=>{
+    const recipe=recipes.find(r=>r.name.toLowerCase()===it.name.toLowerCase());
+    if(!recipe)return;
+    let ings=[];try{ings=JSON.parse(recipe.ingredients_json||'[]');}catch(e){}
+    ings.forEach(ing=>{
+      const inv=inventory.find(i=>i.ingredient_name.toLowerCase()===ing.name.toLowerCase());
+      if(!inv)return;
+      const totalDeduct=ing.qty*it.qty; // already in content units (oz/count)
+      const existing=deductions.find(d=>d.invId===inv.id);
+      if(existing){existing.amount+=totalDeduct;}
+      else deductions.push({invId:inv.id,inv,amount:totalDeduct,unit:ing.unit||inv.contents_unit||'oz'});
+    });
+  });
+  return deductions;
+}
+
 async function updateOrderStatus(id,status){
   if(!status)return;
+  // If completing, show deduction preview
+  if(status==='completed'){
+    const deductions=await calcOrderDeductions(id);
+    if(deductions.length>0){
+      const lines=deductions.map(d=>{
+        const cu=d.inv.contents_unit||'oz';
+        const ozPU=d.inv.oz_per_unit||0;
+        const remaining=d.inv.quantity-d.amount;
+        const bottlesLeft=ozPU>0?(remaining/ozPU).toFixed(2):'—';
+        const lowAfter=remaining<=(d.inv.reorder_threshold||0);
+        return `• ${d.inv.ingredient_name}: −${d.amount.toFixed(1)} ${cu} → ${remaining.toFixed(1)} ${cu} remaining${ozPU>0?` (~${bottlesLeft} ${d.inv.unit}s)`:''}${lowAfter?' ⚠️ LOW':''}`; 
+      }).join('\n');
+      const confirmed=confirm(`Completing Order #${id}\n\nThis will deduct from inventory:\n${lines}\n\nConfirm?`);
+      if(!confirmed)return;
+      // Apply deductions
+      for(const d of deductions){
+        const newQty=Math.max(0,d.inv.quantity-d.amount);
+        await upd('inventory',d.invId,{quantity:newQty});
+        d.inv.quantity=newQty;
+      }
+      renderInventory();renderReports();
+      // Check for new low stock after deduction
+      const nowLow=deductions.filter(d=>d.inv.quantity<=(d.inv.reorder_threshold||0));
+      if(nowLow.length>0)showToast(`⚠️ Low stock after deduction: ${nowLow.map(d=>d.inv.ingredient_name).join(', ')}`);
+    }
+  }
   await upd('orders',id,{status});
   const o=orders.find(o=>o.id===id);if(o)o.status=status;
-  renderOrders();renderDashboard();renderSales();renderQueue();showToast(`Order #${id} → ${status}`);
+  renderOrders();renderDashboard();renderSales();renderQueue();
+  if(status!=='completed')showToast(`Order #${id} → ${status}`);
+  else showToast(`✅ Order #${id} completed — inventory updated`);
 }
 
 async function deleteOrder(id){
@@ -1536,9 +1633,8 @@ function renderQueue(){
 }
 
 async function moveOrder(id,status){
-  await upd('orders',id,{status});
-  const o=orders.find(o=>o.id===id);if(o)o.status=status;
-  renderQueue();renderOrders();renderDashboard();showToast(`#${id} → ${status}`);
+  await updateOrderStatus(id,status);
+  renderQueue();renderOrders();renderDashboard();
 }
 
 // ── SALES ──
