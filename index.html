@@ -295,7 +295,7 @@ tbody tr:hover{background:var(--peach);}
     <div><div class="section-title">📦 Inventory</div><div class="section-sub">Track ingredients, costs, and reorder levels</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-secondary" onclick="openBulkRestock()">📦 Bulk Restock</button>
-      <button class="btn btn-primary" onclick="openModal('inventoryModal')">+ Add Ingredient</button>
+      <button class="btn btn-primary" onclick="openModal('inventoryModal')">+ Add Inventory Item</button>
     </div>
   </div>
   <div class="grid-4" id="invSummaryCards" style="margin-bottom:20px"></div>
@@ -524,7 +524,7 @@ tbody tr:hover{background:var(--peach);}
 <!-- Inventory Modal -->
 <div class="modal-overlay" id="inventoryModal">
   <div class="modal" style="max-width:600px">
-    <div class="modal-title" id="invModalTitle">📦 Add Ingredient</div>
+    <div class="modal-title" id="invModalTitle">📦 Add Inventory Item</div>
     <input type="hidden" id="inv_id"/>
 
     <div class="form-row">
@@ -549,7 +549,20 @@ tbody tr:hover{background:var(--peach);}
         <div class="form-group"><label>Unit Type</label>
           <select id="inv_unit" onchange="calcInvPreview()"><option>bottle</option><option>can</option><option>bag</option><option>box</option><option>each</option><option>gallon</option><option>liter</option><option>oz</option><option>lbs</option><option>other</option></select>
         </div>
-        <div class="form-group"><label>Oz per Unit</label><input type="number" id="inv_oz_per_unit" placeholder="e.g. 59" step="0.1" min="0" oninput="calcInvPreview()"/></div>
+        <div class="form-group"><label>Contents per Unit</label>
+          <div style="display:flex;gap:6px">
+            <input type="number" id="inv_oz_per_unit" placeholder="e.g. 59" step="0.1" min="0" oninput="calcInvPreview()" style="flex:1"/>
+            <select id="inv_contents_unit" onchange="calcInvPreview()" style="width:80px;padding:7px 8px;border:1.5px solid var(--peach2);border-radius:8px;font-size:.85rem;background:var(--cream);color:var(--espresso)">
+              <option value="oz">oz</option>
+              <option value="ml">ml</option>
+              <option value="count">count</option>
+              <option value="lbs">lbs</option>
+              <option value="ft">ft</option>
+              <option value="g">g</option>
+              <option value="N/A">N/A</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div class="form-row" style="margin-bottom:0">
         <div class="form-group"><label>Reorder At (units)</label><input type="number" id="inv_reorder" placeholder="e.g. 2" step="0.1" oninput="calcInvPreview()"/></div>
@@ -854,22 +867,60 @@ function renderRecipes(){
   if(recipes.length===0){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🧃</div><p>No recipes yet.</p></div>';return;}
   grid.innerHTML=recipes.map(r=>{
     const cost=calcRecipeCost(r);
-    const margin=r.price>0?((r.price-cost)/r.price*100).toFixed(0):'--';
-    const mColor=parseFloat(margin)>=60?'var(--success)':parseFloat(margin)>=30?'var(--warn)':'var(--danger)';
+    const price=r.price||0;
+    const margin=price>0?((price-cost)/price*100).toFixed(1):'--';
+    const profit=price>0?(price-cost).toFixed(2):'--';
+    const mNum=parseFloat(margin);
+    const mColor=mNum>=60?'var(--success)':mNum>=40?'var(--warn)':'var(--danger)';
     let ings=[];try{ings=JSON.parse(r.ingredients_json||'[]');}catch(e){}
+    const pricing=calcRecipePricing(cost);
+    const ingBreakdown=ings.map(ing=>{
+      const inv=inventory.find(i=>i.ingredient_name.toLowerCase()===ing.name.toLowerCase());
+      if(!inv)return `<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:3px 0;border-bottom:1px solid var(--peach)"><span style="color:var(--muted)">${ing.name} (${ing.qty} ${ing.unit})</span><span style="color:var(--danger)">not in inventory</span></div>`;
+      const {costPer,unit}=getInvCostPerUnit(inv);
+      const ingCost=costPer*ing.qty;
+      return `<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:3px 0;border-bottom:1px solid var(--peach)"><span style="color:var(--muted)">${ing.name} \u00d7 ${ing.qty} ${unit}</span><span style="font-weight:600">$${ingCost.toFixed(3)}</span></div>`;
+    }).join('');
+    const pricingRows=pricing.map(p=>{
+      const isCurrent=price>0&&Math.abs(price-p.price)<0.5;
+      return `<div style="display:flex;justify-content:space-between;font-size:.78rem;padding:2px 0;${isCurrent?'font-weight:700;color:var(--coral)':'color:var(--muted)'}"><span>${p.margin}% margin</span><span>$${p.price.toFixed(2)}</span></div>`;
+    }).join('');
     return `<div class="recipe-card">
       <div class="recipe-card-header">
         <div class="recipe-card-name">${r.name}</div>
-        <div class="recipe-card-cat">${r.category} • ${r.serving_size||''}</div>
+        <div class="recipe-card-cat">${r.category} \u00b7 ${r.serving_size||''}</div>
       </div>
       <div class="recipe-card-body">
-        <div class="recipe-meta">
-          <div class="recipe-meta-item">💲 $${(r.price||0).toFixed(2)}</div>
-          <div class="recipe-meta-item">🏭 $${cost.toFixed(2)} cost</div>
-          <div class="recipe-meta-item" style="color:${mColor}">📈 ${margin}% margin</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="text-align:center;background:var(--peach);border-radius:8px;padding:8px">
+            <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Sell Price</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--espresso)">$${price.toFixed(2)}</div>
+          </div>
+          <div style="text-align:center;background:var(--peach);border-radius:8px;padding:8px">
+            <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Make Cost</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--brown)">$${cost.toFixed(2)}</div>
+          </div>
+          <div style="text-align:center;background:var(--peach);border-radius:8px;padding:8px">
+            <div style="font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Margin</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:${mColor}">${margin}%</div>
+          </div>
         </div>
-        ${ings.length>0?`<div style="font-size:.78rem;color:var(--muted);margin-bottom:10px">${ings.map(i=>`${i.name} (${i.qty} ${i.unit})`).join(' · ')}</div>`:''}
-        <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px">${(r.instructions||'').substring(0,90)}${r.instructions&&r.instructions.length>90?'...':''}</div>
+        ${profit!='--'?`<div style="text-align:center;font-size:.82rem;color:var(--success);font-weight:700;margin-bottom:12px;background:#E8F8F0;padding:6px;border-radius:8px">💵 Profit per drink: $${profit}</div>`:''}
+        ${ingBreakdown?`<div style="margin-bottom:12px">
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Ingredient Cost Breakdown</div>
+          ${ingBreakdown}
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:800;padding:5px 0;color:var(--espresso)"><span>Total Make Cost</span><span style="color:var(--coral)">$${cost.toFixed(2)}</span></div>
+        </div>`:''}
+        <details style="margin-bottom:12px">
+          <summary style="font-size:.75rem;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;padding:4px 0;list-style:none">
+            💡 Pricing Guide (click to expand)
+          </summary>
+          <div style="background:var(--peach);border-radius:8px;padding:10px;margin-top:6px">
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">Suggested sell prices based on $${cost.toFixed(2)} make cost. Your current price highlighted in orange.</div>
+            ${pricingRows}
+          </div>
+        </details>
+        ${r.instructions?`<div style="font-size:.8rem;color:var(--muted);margin-bottom:12px">${r.instructions.substring(0,90)}${r.instructions.length>90?'...':''}</div>`:''}
         <div style="display:flex;gap:6px">
           <button class="btn btn-secondary btn-sm" onclick="editRecipe(${r.id})">✏️ Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteRecipe(${r.id})">Delete</button>
@@ -879,13 +930,32 @@ function renderRecipes(){
   }).join('');
 }
 
+function getInvCostPerUnit(inv){
+  // Returns cost per content unit (oz, ml, count, etc.)
+  // If no contents defined, falls back to cost per inventory unit
+  const contents=parseFloat(inv.oz_per_unit)||0;
+  const contentsUnit=(inv.contents_unit||'oz');
+  if(contents>0&&contentsUnit!=='N/A'){
+    return {costPer:inv.unit_cost/contents, unit:contentsUnit};
+  }
+  return {costPer:inv.unit_cost, unit:inv.unit};
+}
+
 function calcRecipeCost(r){
   try{
     return (JSON.parse(r.ingredients_json||'[]')).reduce((sum,ing)=>{
       const inv=inventory.find(i=>i.ingredient_name.toLowerCase()===ing.name.toLowerCase());
-      return sum+(inv&&inv.unit_cost?inv.unit_cost*ing.qty:0);
+      if(!inv||!inv.unit_cost)return sum;
+      const {costPer}=getInvCostPerUnit(inv);
+      return sum+(costPer*ing.qty);
     },0);
   }catch(e){return 0;}
+}
+
+function calcRecipePricing(cost){
+  // Returns suggested prices at common margins
+  const margins=[50,60,70,75,80];
+  return margins.map(m=>({margin:m,price:cost/(1-m/100)}));
 }
 
 // Ingredient rows
@@ -1008,19 +1078,23 @@ function setInvFilter(cat,btn){
 function calcInvPreview(){
   const qty=parseFloat(document.getElementById('inv_qty').value)||0;
   const cost=parseFloat(document.getElementById('inv_cost').value)||0;
-  const oz=parseFloat(document.getElementById('inv_oz_per_unit').value)||0;
+  const contents=parseFloat(document.getElementById('inv_oz_per_unit').value)||0;
+  const contentsUnit=document.getElementById('inv_contents_unit')?document.getElementById('inv_contents_unit').value:'oz';
   const unit=document.getElementById('inv_unit').value;
   const reorder=parseFloat(document.getElementById('inv_reorder').value)||0;
   const par=parseFloat(document.getElementById('inv_par').value)||0;
   const el=document.getElementById('invCalcPreview');
   if(qty>0&&cost>0){
     const totalVal=(qty*cost).toFixed(2);
-    const costPerOz=oz>0?(cost/oz).toFixed(4):'—';
-    const totalOz=oz>0?(qty*oz).toFixed(1):'—';
+    const showContents=contents>0&&contentsUnit!=='N/A';
+    const costPerContent=showContents?(cost/contents).toFixed(4):'—';
+    const totalContents=showContents?(qty*contents).toFixed(1):'—';
     let status='';
     if(reorder>0){status=qty<=reorder?'⚠️ Below reorder level':qty<par?'🟡 Below par level':'✅ Well stocked';}
     el.style.display='';
-    el.innerHTML=`<strong>Preview:</strong> ${qty} ${unit}(s) × $${cost} = <strong>$${totalVal}</strong>${oz>0?` · Total oz: ${totalOz} · Cost/oz: $${costPerOz}`:''}${status?` · ${status}`:''}`;
+    el.innerHTML=`<strong>Preview:</strong> ${qty} ${unit}(s) × $${cost} = <strong>$${totalVal}</strong>`+
+      (showContents?` · Total ${contentsUnit}: ${totalContents} · Cost/${contentsUnit}: $${costPerContent}`:'')+
+      (status?` · ${status}`:'');
   } else { el.style.display='none'; }
 }
 
@@ -1078,6 +1152,7 @@ function renderInventory(){
       const val=(i.unit_cost||0)*(i.quantity||0);
       const ozPerUnit=i.oz_per_unit||0;
       const costPerOz=ozPerUnit>0?((i.unit_cost||0)/ozPerUnit).toFixed(4):'—';
+      const contentsUnit=i.contents_unit||'oz';
       const totalOz=ozPerUnit>0?((i.quantity||0)*ozPerUnit).toFixed(1):'—';
       const lastR=i.last_restocked?new Date(i.last_restocked+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
       const delivery=i.expected_delivery?new Date(i.expected_delivery+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
@@ -1097,13 +1172,13 @@ function renderInventory(){
         </td>
         <td><span class="badge badge-muted" style="font-size:.7rem">${i.category||'Other'}</span></td>
         <td>
-          <div style="font-weight:600">${i.quantity} ${i.unit}${ozPerUnit>0?` <span style="font-size:.75rem;color:var(--muted)">(${totalOz} oz)</span>`:''}</div>
+          <div style="font-weight:600">${i.quantity} ${i.unit}${ozPerUnit>0?` <span style="font-size:.75rem;color:var(--muted)">(${totalOz} ${contentsUnit})</span>`:''}</div>
           <div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${Math.min(100,pct)}%;background:${barColor}"></div></div></div>
           ${i.par_level?`<div style="font-size:.72rem;color:var(--muted)">Par: ${i.par_level} · Reorder: ${i.reorder_threshold||0}</div>`:''}
         </td>
         <td>
           <div>$${(i.unit_cost||0).toFixed(2)}/${i.unit}</div>
-          ${ozPerUnit>0?`<div style="font-size:.75rem;color:var(--muted)">$${costPerOz}/oz</div>`:''}
+          ${ozPerUnit>0?`<div style="font-size:.75rem;color:var(--muted)">$${costPerOz}/${contentsUnit}</div>`:''}
         </td>
         <td style="font-weight:600">$${val.toFixed(2)}</td>
         <td>${supplierLink}</td>
@@ -1135,6 +1210,8 @@ function openEditInventory(id){
   document.getElementById('inv_unit').value=i.unit||'bottle';
   document.getElementById('inv_qty').value=i.quantity||0;
   document.getElementById('inv_oz_per_unit').value=i.oz_per_unit||'';
+  const cuEl=document.getElementById('inv_contents_unit');
+  if(cuEl)cuEl.value=i.contents_unit||'oz';
   document.getElementById('inv_cost').value=i.unit_cost||0;
   document.getElementById('inv_reorder').value=i.reorder_threshold||0;
   document.getElementById('inv_par').value=i.par_level||'';
@@ -1199,6 +1276,7 @@ async function saveInventory(){
     unit:document.getElementById('inv_unit').value,
     quantity:parseFloat(document.getElementById('inv_qty').value)||0,
     oz_per_unit:parseFloat(document.getElementById('inv_oz_per_unit').value)||null,
+    contents_unit:(document.getElementById('inv_contents_unit')?document.getElementById('inv_contents_unit').value:'oz'),
     unit_cost:parseFloat(document.getElementById('inv_cost').value)||0,
     reorder_threshold:parseFloat(document.getElementById('inv_reorder').value)||0,
     par_level:parseFloat(document.getElementById('inv_par').value)||null,
