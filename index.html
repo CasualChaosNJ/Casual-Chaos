@@ -1224,6 +1224,7 @@ function renderInventory(){
         <td style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="btn btn-secondary btn-sm" onclick="openEditInventory(${i.id})">Edit</button>
           <button class="btn btn-secondary btn-sm" onclick="adjustQty(${i.id})">Qty</button>
+          <button class="btn btn-secondary btn-sm" onclick="duplicateInventory(${i.id})" title="Duplicate this item">⧉ Dupe</button>
           <button class="btn btn-danger btn-sm" onclick="deleteInventory(${i.id})">Del</button>
         </td>
       </tr>`;
@@ -1411,6 +1412,30 @@ async function deleteInventory(id){
   await del('inventory',id);
   inventory=inventory.filter(i=>i.id!==id);
   renderInventory();renderDashboard();showToast('Ingredient deleted');
+}
+
+async function duplicateInventory(id){
+  const src=inventory.find(i=>i.id===id);if(!src)return;
+  // Copy all fields, strip id, append "Copy" to name
+  const body={
+    ingredient_name:src.ingredient_name+' (Copy)',
+    category:src.category,unit:src.unit,
+    quantity:src.quantity,oz_per_unit:src.oz_per_unit,
+    contents_unit:src.contents_unit,unit_cost:src.unit_cost,
+    reorder_threshold:src.reorder_threshold,par_level:src.par_level,
+    units_ordered:src.units_ordered,supplier:src.supplier,
+    supplier_url:src.supplier_url,last_restocked:src.last_restocked,
+    expected_delivery:src.expected_delivery,expiry_date:src.expiry_date,
+    notes:src.notes
+  };
+  try{
+    const res=await ins('inventory',body);
+    inventory.unshift(res[0]);
+    renderInventory();renderDashboard();renderRecipes();
+    // Auto-open edit modal so they can rename it immediately
+    openEditInventory(res[0].id);
+    showToast('✅ Duplicated — update the name and save');
+  }catch(e){showToast('Error: '+e.message);}
 }
 
 // ── ORDER MODAL ──
