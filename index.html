@@ -1112,10 +1112,20 @@ function calcInvPreview(){
 }
 
 function renderInvSummary(){
-  const total=inventory.reduce((s,i)=>s+((i.unit_cost||0)*(i.quantity||0)),0);
+  const total=inventory.reduce((s,i)=>{
+    const ozPU=i.oz_per_unit||0;const cu=i.contents_unit||'oz';
+    const useC=ozPU>0&&cu!=='N/A';
+    const units=useC?(i.quantity/ozPU):i.quantity;
+    return s+((i.unit_cost||0)*units);
+  },0);
   const low=inventory.filter(i=>i.quantity<=(i.reorder_threshold||0)).length;
   const cats=[...new Set(inventory.map(i=>i.category||'Other'))].length;
-  const alcoholVal=inventory.filter(i=>i.category==='Alcohol').reduce((s,i)=>s+((i.unit_cost||0)*(i.quantity||0)),0);
+  const alcoholVal=inventory.filter(i=>i.category==='Alcohol').reduce((s,i)=>{
+    const ozPU=i.oz_per_unit||0;const cu=i.contents_unit||'oz';
+    const useC=ozPU>0&&cu!=='N/A';
+    const units=useC?(i.quantity/ozPU):i.quantity;
+    return s+((i.unit_cost||0)*units);
+  },0);
   const el=document.getElementById('invSummaryCards');
   if(!el)return;
   // Check expiring soon (within 7 days)
@@ -1154,7 +1164,12 @@ function renderInventory(){
   cats.forEach(cat=>{
     const items=filtered.filter(i=>(i.category||'Other')===cat);
     if(items.length===0)return;
-    const catVal=items.reduce((s,i)=>s+((i.unit_cost||0)*(i.quantity||0)),0);
+    const catVal=items.reduce((s,i)=>{
+      const ozPU=i.oz_per_unit||0;const cu=i.contents_unit||'oz';
+      const useC=ozPU>0&&cu!=='N/A';
+      const units=useC?(i.quantity/ozPU):i.quantity;
+      return s+((i.unit_cost||0)*units);
+    },0);
     grandTotal+=catVal;
     if(!invCategoryFilter)html+=`<tr class="cat-group-header"><td colspan="12">${catEmoji[cat]||'📁'} ${cat}</td></tr>`;
     items.forEach(i=>{
@@ -1162,11 +1177,15 @@ function renderInventory(){
       const belowPar=i.par_level&&i.quantity<i.par_level&&!low;
       const pct=i.par_level>0?Math.min(100,(i.quantity/i.par_level)*100):i.reorder_threshold>0?Math.min(100,(i.quantity/i.reorder_threshold)*100):100;
       const barColor=low?'var(--danger)':belowPar?'var(--warn)':'var(--success)';
-      const val=(i.unit_cost||0)*(i.quantity||0);
       const ozPerUnit=i.oz_per_unit||0;
-      const costPerOz=ozPerUnit>0?((i.unit_cost||0)/ozPerUnit).toFixed(4):'—';
       const contentsUnit=i.contents_unit||'oz';
-      const totalOz=ozPerUnit>0?((i.quantity||0)*ozPerUnit).toFixed(1):'—';
+      const useContent=ozPerUnit>0&&contentsUnit!=='N/A';
+      // Units on hand = stored qty ÷ oz_per_unit (back-calculate to bottles/boxes)
+      const unitsOnHand=useContent?(i.quantity/ozPerUnit):i.quantity;
+      // Total value = units on hand × unit cost (e.g. 1 bottle × $74.63)
+      const val=(i.unit_cost||0)*unitsOnHand;
+      const costPerContent=ozPerUnit>0?((i.unit_cost||0)/ozPerUnit).toFixed(4):'—';
+      const costPerOz=costPerContent; // alias for display
       const lastR=i.last_restocked?new Date(i.last_restocked+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
       const delivery=i.expected_delivery?new Date(i.expected_delivery+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
       const expiry=i.expiry_date?new Date(i.expiry_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
@@ -1185,14 +1204,14 @@ function renderInventory(){
         </td>
         <td><span class="badge badge-muted" style="font-size:.7rem">${i.category||'Other'}</span></td>
         <td>
-          <div style="font-weight:700;font-size:.95rem">${i.quantity.toFixed(1)} ${contentsUnit}</div>
-          ${ozPerUnit>0?`<div style="font-size:.75rem;color:var(--muted)">(${(i.quantity/ozPerUnit).toFixed(2)} ${i.unit}s on hand)</div>`:''}
+          <div style="font-weight:700;font-size:.95rem">${useContent?unitsOnHand.toFixed(2)+' '+i.unit+(unitsOnHand!==1?'s':''):i.quantity.toFixed(1)+' '+contentsUnit}</div>
+          ${useContent?`<div style="font-size:.75rem;color:var(--muted)">(${i.quantity.toFixed(1)} ${contentsUnit} total)</div>`:''}
           <div class="inv-bar-wrap"><div class="inv-bar-bg"><div class="inv-bar-fill" style="width:${Math.min(100,pct)}%;background:${barColor}"></div></div></div>
-          ${i.reorder_threshold>0?`<div style="font-size:.72rem;color:var(--muted)">Reorder: ${i.reorder_threshold.toFixed(1)} ${contentsUnit}${i.par_level?` · Par: ${i.par_level.toFixed(1)} ${contentsUnit}`:''}</div>`:''}
+          ${i.reorder_threshold>0?`<div style="font-size:.72rem;color:var(--muted)">Reorder: ${useContent?(i.reorder_threshold/ozPerUnit).toFixed(1)+' '+i.unit+'s':i.reorder_threshold.toFixed(1)+' '+contentsUnit}${i.par_level?\` · Par: ${useContent?(i.par_level/ozPerUnit).toFixed(1)+' '+i.unit+'s':i.par_level.toFixed(1)+' '+contentsUnit}\`:''}</div>`:''}
         </td>
         <td>
-          <div>$${(i.unit_cost||0).toFixed(2)}/${i.unit}</div>
-          ${ozPerUnit>0?`<div style="font-size:.75rem;color:var(--muted)">$${costPerOz}/${contentsUnit}</div>`:''}
+          <div style="font-weight:600">$${(i.unit_cost||0).toFixed(2)}/${i.unit}</div>
+          ${useContent?`<div style="font-size:.75rem;color:var(--muted)">$${costPerContent}/${contentsUnit}</div>`:''}
         </td>
         <td style="font-weight:600">$${val.toFixed(2)}</td>
         <td>${supplierLink}</td>
